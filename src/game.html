@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <style>
+        body { font-family: monospace; }
+
+        #ships {
+          margin-bottom: 1rem;
+        }
+
+        #gameInfo {
+          margin-bottom: 1rem;
+        }
+
+        #shipsInfo {
+          display: flex;
+          flex-wrap: wrap;
+        }
+
+        .shipInfo {
+          margin-right: 1rem;
+          margin-bottom: 1rem;
+          border-style: double;
+          padding: 10px;
+
+          & button {
+            display: block;
+            margin-top: 0.2rem;
+          }
+        }
+
+        button:disabled {
+          background-color: #ccc; /* Light grey background */
+          color: #666; /* Dark grey text */
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+
+        #deployShips {
+          & button {
+            display: block;
+            margin-bottom: 0.2rem;
+          }
+        }
+
+        #planetsInfo {
+          display: flex;
+          flex-wrap: wrap;
+        }
+
+        .planetInfo {
+          margin-right: 1rem;
+          margin-bottom: 1rem;
+          border-style: double;
+          padding: 10px;
+
+          & button {
+            display: block;
+            margin-top: 0.2rem;
+          }
+        }
+
+        .planetDisplay {
+          white-space: pre;
+          margin-bottom: 0.2rem;
+        }
+      </style>
+    </head>
+    <body>
+      <div id="ships"></div>
+      <div id="gameInfo"></div>
+      <div id="shipsInfo"></div>
+      <div id="planetsInfo"></div>
+      <!-- <button id="debugNextButton"></button> -->
+      <script src="./game.js"></script>
+    </body>
+</html>
+
