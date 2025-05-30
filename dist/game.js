@@ -154,17 +154,7 @@ const main = async () => {
     }
 };
 const updates = async () => {
-    // This upgrade queuing system to prevent Nathan from cheating hopefully.
-    for (const queueMsg of shipUpgradeQueue) {
-        const { item, upgradeFunc } = queueMsg;
-        await upgradeFunc(item);
-    }
-    shipUpgradeQueue.length = 0;
-    for (const queueMsg of planetUpgradeQueue) {
-        const { item, upgradeFunc } = queueMsg;
-        await upgradeFunc(item);
-    }
-    planetUpgradeQueue.length = 0;
+    upgradeUpdates();
     ships.forEach((ship) => {
         if (ship.pos >= ship.destination2.pos) {
             ship.direction = false;
@@ -185,6 +175,19 @@ const updates = async () => {
         }
     });
     gameTick += 1;
+};
+const upgradeUpdates = async () => {
+    // This upgrade queuing system to prevent Nathan from cheating hopefully.
+    for (const queueMsg of shipUpgradeQueue) {
+        const { item, upgradeFunc } = queueMsg;
+        await upgradeFunc(item);
+    }
+    shipUpgradeQueue.length = 0;
+    for (const queueMsg of planetUpgradeQueue) {
+        const { item, upgradeFunc } = queueMsg;
+        await upgradeFunc(item);
+    }
+    planetUpgradeQueue.length = 0;
 };
 const display = () => {
     // Ship Display
