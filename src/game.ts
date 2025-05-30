@@ -20,39 +20,50 @@ type Ship = {
    upgradeCapacityCost: number;
 }
 
+// Ascii art from https://www.asciiart.eu/space/planets
 const planetA: Planet = {name: "A", pos: 0, goods: 1, launchCost: 0};
 const planetB: Planet = {name: "B", pos: 8, goods: 1, launchCost: 9,
-  display: `         ,MMM8&&&.
+  display: `
+         ,MMM8&&&.
     _...MMMMM88&&&&..._
  .::'''MMMMM88&&&&&&'''::.
 ::     MMMMM88&&&&&&     ::
 '::....MMMMM88&&&&&&....::'
    '''''MMMMM88&&&&'''''
-         'MMM8&&&'
+   jgs   'MMM8&&&'
+
 `};
 const planetC: Planet = {name: "C", pos: 15, goods: 2, launchCost: 15,
-  display: ` ~+       *       +
+  display: `
+ ~+       *       +
     '                  |
 ()    .-.,="\`\`"=.    - o -
-      '=/_       \     |
+      '=/_       \\     |
    *   |  '=._    |
-        \     \`=./\`,        '
+        \      \`=./\`,        '
      .   '=.__.=' \`='      *
                       +
- O      *        '       .
+ O jgs  *        '       .
+
 `};
-const planetD: Planet = {name: "D", pos: 30, goods: 4, launchCost: 25,
-  display: `⢞⡵⣫⢞⡵⣫⢞⣵⣫⣞⡵⠛⠚⠓⠛⢺⣵⣫⢞⡵⣫⢞⡵⣫⢞⡵
-⣮⢳⡝⣮⢳⣝⡾⢊⢡⠂⠐⠁⢩⠴⣵⣦⡤⡉⠙⢾⡱⣏⢾⡱⣏⢾
-⣎⢷⡹⣎⡿⠈⠔⠀⠀⠠⠀⠕⠋⠘⡥⡉⣿⣷⣷⣎⠙⢮⡳⣝⢮⡳
-⡼⣣⢟⡵⢃⠁⠀⠀⠀⠡⠄⣠⢄⡐⢃⠶⣏⡟⣿⣿⣴⡌⣷⡹⣎⢷
-⢞⡵⣫⠙⡌⠀⠀⠀⠀⠠⡀⡄⢀⡘⠥⣘⠐⣲⢸⣿⣿⣇⠊⣷⡹⢮
-⣮⢳⡽⠀⠆⠀⠄⢀⡠⢄⠀⡄⠱⠬⣁⡈⡖⣧⢿⣿⣿⣿⠀⣧⣛⠷
-⣎⢷⣹⣀⠃⠂⠠⠀⠰⡈⢆⢘⡖⠓⢠⢈⡞⣄⣿⣿⣿⡟⣀⠶⣭⣛
-⡼⣣⢷⡹⡜⢤⡋⠑⠠⢱⠀⡏⡄⠢⢥⠜⣼⣿⣿⣿⣿⢡⣏⡟⣶⡹
-⢞⡵⣫⢳⡳⣄⡹⢾⣼⣩⠖⣱⡍⠱⢿⣾⣿⣿⣿⠟⣠⠾⣼⡹⢶⡹
-⣮⢳⣭⢳⡝⣧⢳⡜⣉⠶⠶⢿⠦⡶⢾⠿⠟⣛⢫⢶⣫⢟⡶⣹⢧⡻
-⣎⠷⣎⢷⡹⣎⢷⡹⡽⢶⡳⢤⡤⢤⡤⣴⢻⡞⡽⣎⢷⣫⢞⡵⣫⢷
+const planetD: Planet = {name: "D", pos: 30, goods: 5, launchCost: 30,
+  display: `
+     .        ___---___
+           .--\\        --.     .   .
+         ./.;_.\\     __/~ \\.
+    .   /;  / \`-'  __\\    . \\
+       / ,--'     / .   .;   \\      |
+      | .|       /       __   |    -O-
+     |__/    __ |  . ;   \\ | . |    |
+     |      /  \\\\_    . ;| \\___|
+o    |      \\  .~\\\\___,--'     |
+      |     | . ; ~~~~\\_    __|
+       \\    \\   .  .  ; \\  /_/
+   .    \\   /         . |  ~/    .
+ .       ~\\ \\   .      /  /~
+           ~--___ ; ___--~
+      .          ---         .    -JT
+
 `};
 
 const destinationPlanets = [planetB, planetC, planetD];
@@ -62,13 +73,13 @@ let upgradeCapacityCost = 8;
 
 const ship1: Ship = { name: "Ship 1", destination1: planetA, destination2: planetB, pos: 0, direction: true, speed: 1, capacity: 1, upgradeSpeedCost, upgradeCapacityCost };
 const ship2: Ship = { name: "Ship 2", destination1: planetA, destination2: planetC, pos: 0, direction: true, speed: 1, capacity: 2, upgradeSpeedCost, upgradeCapacityCost };
-const ships = [ship1, ship2];
+const ships = [ship1];
 
-let credits = 0;
+let credits = 5;
 let gameTick = 0;
 
-const upgradeShipSpeed = (ship: Ship) => {
-  if (credits >= ship.upgradeSpeedCost) {
+const upgradeShipSpeed = async (ship: Ship) => {
+  if (credits >= ship.upgradeSpeedCost && ship.speed < 4) {
     ship.speed += 1;
     credits -= ship.upgradeSpeedCost;
 
@@ -83,8 +94,8 @@ const upgradeShipSpeed = (ship: Ship) => {
   }
 }
 
-const upgradeShipCapacity = (ship: Ship) => {
-  if (credits >= ship.upgradeCapacityCost) {
+const upgradeShipCapacity = async (ship: Ship) => {
+  if (credits >= ship.upgradeCapacityCost && ship.capacity < 4) {
     ship.capacity += 1;
     credits -= ship.upgradeCapacityCost;
     switch(ship.speed) {
@@ -98,7 +109,7 @@ const upgradeShipCapacity = (ship: Ship) => {
   }
 }
 
-const addShipToPlanet = (planet: Planet): Ship | undefined => {
+const addShipToPlanet = async (planet: Planet) => {
   if (credits >= planet.launchCost) {
     const ship: Ship = {
       name: "Ship " + (ships.length + 1),
@@ -116,8 +127,21 @@ const addShipToPlanet = (planet: Planet): Ship | undefined => {
 
     planet.launchCost = Math.floor(planet.launchCost * 1.5);
 
-    return ship;
+    ships.push(ship);
   }
+}
+
+type UpgradeQueueMsg<T> = {
+  item: T;
+  upgradeFunc: (item: T) => Promise<void>;
+}
+const shipUpgradeQueue: UpgradeQueueMsg<Ship>[] = [];
+const addToShipUpgradeQueue = (item: Ship, upgradeFunc: (item: Ship) => Promise<void>) => {
+    shipUpgradeQueue.push({item, upgradeFunc});
+}
+const planetUpgradeQueue: UpgradeQueueMsg<Planet>[] = [];
+const addToPlanetUpgradeQueue = (item: Planet, upgradeFunc: (item: Planet) => Promise<void>) => {
+    planetUpgradeQueue.push({item, upgradeFunc});
 }
 
 const getOrCreateButton = (
@@ -178,7 +202,19 @@ const main = async () => {
   }
 }
 
-const updates = () => {
+const updates = async () => {
+  // This upgrade queuing system to prevent Nathan from cheating hopefully.
+  for (const queueMsg of shipUpgradeQueue) {
+    const { item, upgradeFunc } = queueMsg;
+    await upgradeFunc(item);
+  }
+  shipUpgradeQueue.length = 0;
+  for (const queueMsg of planetUpgradeQueue) {
+    const { item, upgradeFunc } = queueMsg;
+    await upgradeFunc(item);
+  }
+  planetUpgradeQueue.length = 0;
+
   ships.forEach((ship) => {
     if (ship.pos >= ship.destination2.pos) {
       ship.direction = false;
@@ -323,7 +359,7 @@ const display = () => {
     const addSpeedButton = getOrCreateButton({
       id: addSpeedId,
       textContent: "Upgrade speed " + "(" + ship.upgradeSpeedCost + " credits)",
-      onclick:  () => { upgradeShipSpeed(ship)},
+      onclick:  () => { addToShipUpgradeQueue(ship, upgradeShipSpeed) },
       disabled: credits < ship.upgradeSpeedCost || ship.speed === 4,
     });
     if (ship.speed === 4) {
@@ -336,7 +372,7 @@ const display = () => {
     const addCapacityButton = getOrCreateButton({
       id: addCapacityId,
       textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
-      onclick: () => { upgradeShipCapacity(ship) },
+      onclick: () => { addToShipUpgradeQueue(ship, upgradeShipCapacity) },
       disabled: credits < ship.upgradeCapacityCost,
     });
     if (ship.capacity === 4) {
@@ -364,18 +400,21 @@ const display = () => {
     const planetName = getOrCreateElementById({id: planetId + "-name", innerText: "Planet " + planet.name});
     const planetDisplay = getOrCreateElementById({id: planetId + "-display", innerText: planet.display});
     planetDisplay.className = "planetDisplay";
+    const hasShipsInPlanet = ships.find((ship) => ship.destination2 === planet);
+    if (!hasShipsInPlanet) {
+      planetDisplay.innerText = planetDisplay.innerText.replace(/[ \t]/g, '/');
+    }
 
-    const distance = getOrCreateElementById({id: planetId + "-distance", innerText: "Distance: " + planet.pos});
-    const goodsMultiplier = getOrCreateElementById({id: planetId + "-goods", innerText: "Goods multiplier: " + planet.goods});
+    const distanceText = hasShipsInPlanet ? planet.pos : "???"
+    const distance = getOrCreateElementById({id: planetId + "-distance", innerText: "Distance: " + distanceText});
+    const goodsText = hasShipsInPlanet ? planet.goods : "???"
+    const goodsMultiplier = getOrCreateElementById({id: planetId + "-goods", innerText: "Goods multiplier: " + goodsText});
 
     const addShipButton = getOrCreateButton({
       id: "addShip" + planet.name,
       textContent: "Launch new ship (" + planet.launchCost + " credits)",
       onclick: () => {
-        const newShip = addShipToPlanet(planet)
-        if (newShip) {
-          ships.push(newShip);
-        }
+        addToPlanetUpgradeQueue(planet, addShipToPlanet);
       },
       disabled: credits < planet.launchCost,
     });
