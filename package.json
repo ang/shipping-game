@@ -4,11 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --names tsc,vite 'tsc --noEmit --watch' 'vite'",
+    "dev-vite": "vite",
+    "dev-tsc": "tsc --watch",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   }
