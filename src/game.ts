@@ -72,7 +72,6 @@ const upgradeSpeedCost = 5;
 let upgradeCapacityCost = 8;
 
 const ship1: Ship = { name: "Ship 1", destination1: planetA, destination2: planetB, pos: 0, direction: true, speed: 1, capacity: 1, upgradeSpeedCost, upgradeCapacityCost };
-const ship2: Ship = { name: "Ship 2", destination1: planetA, destination2: planetC, pos: 0, direction: true, speed: 1, capacity: 2, upgradeSpeedCost, upgradeCapacityCost };
 const ships = [ship1];
 
 let credits = 5;
@@ -177,6 +176,7 @@ const getOrCreateElementById = (
     return element;
 };
 
+// @ts-ignore declared but its value is never read
 const debugPauseUntilClick = () => {
   return new Promise((resolve) => {
     const button = getOrCreateElementById({
@@ -253,10 +253,6 @@ const display = () => {
 
     let shipInnerText = ""
     if (ship.pos > 0 && ship.pos < ship.destination2.pos) {
-      const showShipAddOnsForwardDir = !(ship.pos === 1 && ship.direction);
-      const showShipAddOnsBackwardDir = !(ship.pos === ship.destination2.pos - 1 && !ship.direction);
-      const showShipAddOns = showShipAddOnsForwardDir && showShipAddOnsBackwardDir;
-
       if (ship.direction) {
         shipInnerText += ">"
       } else {
@@ -332,7 +328,6 @@ const display = () => {
   // Game info
   const gameInfoDiv = getOrCreateElementById({id: "gameInfo"});
 
-  let creditsId = "credits";
   let creditsDiv = getOrCreateElementById({
     id: "credits",
     innerText: "Credits: " + credits.toString(),
