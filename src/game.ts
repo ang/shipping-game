@@ -182,7 +182,7 @@ const display = () => {
   const shipsDiv = getOrCreateElementById({id: "ships"});
 
   ships.forEach((ship) => {
-    const parentId = "shipParent-" + ship.name;
+    const parentId = "shipParent-" + ship.name.split(" ").join("-");
     const parentDiv = getOrCreateElementById({id: parentId});
     const shipName = getOrCreateElementById({id: parentId + "-shipName", innerText: ship.name + ": ", elementTypeArg: "span"});
     const planet1 = getOrCreateElementById({id: parentId + "-planet1", innerText: ship.destination1.name, elementTypeArg: "span"});
@@ -252,13 +252,18 @@ const display = () => {
 
     const planet2 = getOrCreateElementById({id: parentId + "-planet2", innerText: ship.destination2.name, elementTypeArg: "span"});
 
-    parentDiv.appendChild(shipName);
-    parentDiv.appendChild(planet1);
-    parentDiv.appendChild(preShip);
-    parentDiv.appendChild(shipDisplay);
-    parentDiv.appendChild(postShip);
-    parentDiv.appendChild(planet2);
-    shipsDiv.appendChild(parentDiv);
+    if (!parentDiv.childElementCount) {
+      parentDiv.appendChild(shipName);
+      parentDiv.appendChild(planet1);
+      parentDiv.appendChild(preShip);
+      parentDiv.appendChild(shipDisplay);
+      parentDiv.appendChild(postShip);
+      parentDiv.appendChild(planet2);
+    }
+
+    if (!document.getElementById(parentDiv.id)) {
+      shipsDiv.appendChild(parentDiv);
+    }
   });
 
   // Game info
@@ -268,7 +273,9 @@ const display = () => {
     id: "credits",
     innerText: "Credits: " + credits.toString(),
   });
-  gameInfoDiv.appendChild(creditsDiv);
+  if (!gameInfoDiv.childElementCount) {
+    gameInfoDiv.appendChild(creditsDiv);
+  }
 
   // const gameTickId = "game";
   // let gameTickDiv = document.getElementById(gameTickId);
@@ -282,17 +289,17 @@ const display = () => {
   // Ships Info
   const shipsInfoDiv = getOrCreateElementById({id: "shipsInfo"});
   ships.forEach((ship) => {
-    const shipInfoDiv = getOrCreateElementById({id: "shipInfo-" + ship.name});
+    const shipInfoId = "shipInfo-" + ship.name.split(" ").join("-");
+    const shipInfoDiv = getOrCreateElementById({id: shipInfoId});
     shipInfoDiv.className = "shipInfo";
 
-    const shipName = getOrCreateElementById({id: "shipInfo-name-" + ship.name, innerText: ship.name});
-    const destination = getOrCreateElementById({id: "shipInfo-destination-" + ship.name, innerText: "Destination: Planet " + ship.destination2.name});
-    const speed = getOrCreateElementById({id: "shipInfo-speed-" + ship.name, innerText: "Speed: " + ship.speed});
-    const capacity = getOrCreateElementById({id: "shipInfo-capacity-" + ship.name, innerText: "Capacity: " + ship.capacity});
+    const shipName = getOrCreateElementById({id: shipInfoId + "-" + ship.name, innerText: ship.name});
+    const destination = getOrCreateElementById({id: shipInfoId + "-destination", innerText: "Destination: Planet " + ship.destination2.name});
+    const speed = getOrCreateElementById({id: shipInfoId + "-speed", innerText: "Speed: " + ship.speed});
+    const capacity = getOrCreateElementById({id: shipInfoId + "-capacity", innerText: "Capacity: " + ship.capacity});
 
-    const addSpeedId = "addSpeed" + ship.name;
     const addSpeedButton = getOrCreateButton({
-      id: addSpeedId,
+      id: shipInfoId + "-addSpeed",
       textContent: "Upgrade speed " + "(" + ship.upgradeSpeedCost + " credits)",
       onclick:  () => { addToShipUpgradeQueue(ship, upgradeShipSpeed) },
       disabled: credits < ship.upgradeSpeedCost || ship.speed === 4,
@@ -303,9 +310,8 @@ const display = () => {
       addSpeedButton.disabled = true;
     }
 
-    const addCapacityId = "addCapacity" + ship.name;
     const addCapacityButton = getOrCreateButton({
-      id: addCapacityId,
+      id: shipInfoId + "addCapacity",
       textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
       onclick: () => { addToShipUpgradeQueue(ship, upgradeShipCapacity) },
       disabled: credits < ship.upgradeCapacityCost,
@@ -316,19 +322,24 @@ const display = () => {
       addCapacityButton.disabled = true;
     }
 
-    shipInfoDiv.appendChild(shipName);
-    shipInfoDiv.appendChild(destination);
-    shipInfoDiv.appendChild(speed);
-    shipInfoDiv.appendChild(capacity);
-    shipInfoDiv.appendChild(addSpeedButton);
-    shipInfoDiv.appendChild(addCapacityButton);
-    shipsInfoDiv.appendChild(shipInfoDiv);
+    if (!shipInfoDiv.childElementCount) {
+      shipInfoDiv.appendChild(shipName);
+      shipInfoDiv.appendChild(destination);
+      shipInfoDiv.appendChild(speed);
+      shipInfoDiv.appendChild(capacity);
+      shipInfoDiv.appendChild(addSpeedButton);
+      shipInfoDiv.appendChild(addCapacityButton);
+    }
+
+    if (!document.getElementById(shipInfoDiv.id)) {
+      shipsInfoDiv.appendChild(shipInfoDiv);
+    }
   });
 
   // Add ship to existing planet
   const planetsInfo = getOrCreateElementById({id: "planetsInfo"});
   destinationPlanets.forEach((planet) => {
-    const planetId = "planetInfo-" + planet.name;
+    const planetId = "planetInfo-" + planet.name.split(" ").join("-");
     const planetInfo = getOrCreateElementById({id: planetId});
     planetInfo.className = "planetInfo";
 
@@ -346,19 +357,24 @@ const display = () => {
     const goodsMultiplier = getOrCreateElementById({id: planetId + "-goods", innerText: "Goods multiplier: " + goodsText});
 
     const addShipButton = getOrCreateButton({
-      id: "addShip" + planet.name,
+      id: planetId + "addShip",
       textContent: "Launch new ship (" + planet.launchCost + " credits)",
       onclick: () => {
         addToPlanetUpgradeQueue(planet, addShipToPlanet);
       },
       disabled: credits < planet.launchCost,
     });
-    planetsInfo.append(planetInfo);
-    planetInfo.appendChild(planetName);
-    planetInfo.appendChild(planetDisplay);
-    planetInfo.appendChild(distance);
-    planetInfo.appendChild(goodsMultiplier);
-    planetInfo.appendChild(addShipButton);
+    if (!planetInfo.childElementCount) {
+      planetInfo.appendChild(planetName);
+      planetInfo.appendChild(planetDisplay);
+      planetInfo.appendChild(distance);
+      planetInfo.appendChild(goodsMultiplier);
+      planetInfo.appendChild(addShipButton);
+    }
+
+    if (!document.getElementById(planetInfo.id)) {
+      planetsInfo.append(planetInfo);
+    }
   });
 }
 
