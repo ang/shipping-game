@@ -6,7 +6,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const destinationPlanets = [planetB, planetC, planetD];
 
 const upgradeSpeedCost = 5;
-let upgradeCapacityCost = 8;
+const upgradeCapacityCost = 8;
 
 const ships = [ship1];
 
@@ -33,7 +33,7 @@ const upgradeShipCapacity = async (ship: Ship) => {
   if (credits >= ship.upgradeCapacityCost && ship.capacity < 4) {
     ship.capacity += 1;
     credits -= ship.upgradeCapacityCost;
-    switch(ship.speed) {
+    switch(ship.capacity) {
       case 2:
         ship.upgradeCapacityCost += 3;
         break;
@@ -311,7 +311,7 @@ const display = () => {
     }
 
     const addCapacityButton = getOrCreateButton({
-      id: shipInfoId + "addCapacity",
+      id: shipInfoId + "-addCapacity",
       textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
       onclick: () => { addToShipUpgradeQueue(ship, upgradeShipCapacity) },
       disabled: credits < ship.upgradeCapacityCost,
