@@ -8,10 +8,12 @@
     "dev-vite": "vite",
     "dev-tsc": "tsc --watch",
     "build": "tsc && vite build",
+    "deploy": "npm run build && gh-pages -d dist",
     "preview": "vite preview"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "gh-pages": "^6.3.0",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   }
