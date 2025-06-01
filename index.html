@@ -1,8 +1,21 @@
 <!DOCTYPE html>
 <html>
     <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { font-family: monospace; }
+        body {
+          font-family: monospace;
+          font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+          font-size: 2rem;
+
+          button {
+            font-size: 2rem;
+          }
+        }
+
 
         #ships {
           margin-bottom: 1rem;
@@ -36,6 +49,10 @@
           opacity: 0.6;
         }
 
+        button {
+          font-size: 1rem;
+        }
+
         #deployShips {
           & button {
             display: block;
@@ -65,7 +82,7 @@
           margin-bottom: 0.2rem;
         }
       </style>
-      <script type="module" crossorigin src="https://ang.github.io/shipping-game/assets/index-B_TCGth7.js"></script>
+      <script type="module" crossorigin src="https://ang.github.io/shipping-game/assets/index-CNfQtNLF.js"></script>
     </head>
     <body>
       <div id="ships"></div>
