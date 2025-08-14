@@ -9,7 +9,7 @@ const destinationPlanets = [planetB, planetC, planetD];
 const upgradeSpeedCost = 5;
 const upgradeCapacityCost = 8;
 
-const saveStateTimeMs = 5000;
+const saveStateTimeMs = 1000;
 
 let state: State = getDefaultState();
 
