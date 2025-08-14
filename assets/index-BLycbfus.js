@@ -1,0 +1,38 @@
+(function(){const n=document.createElement("link").relList;if(n&&n.supports&&n.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))p(s);new MutationObserver(s=>{for(const e of s)if(e.type==="childList")for(const a of e.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&p(a)}).observe(document,{childList:!0,subtree:!0});function r(s){const e={};return s.integrity&&(e.integrity=s.integrity),s.referrerPolicy&&(e.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?e.credentials="include":s.crossOrigin==="anonymous"?e.credentials="omit":e.credentials="same-origin",e}function p(s){if(s.ep)return;s.ep=!0;const e=r(s);fetch(s.href,e)}})();const E={name:"A",pos:0,goods:1,launchCost:0},D={name:"B",pos:8,goods:1,launchCost:9,display:`
+         ,MMM8&&&.
+    _...MMMMM88&&&&..._
+ .::'''MMMMM88&&&&&&'''::.
+::     MMMMM88&&&&&&     ::
+'::....MMMMM88&&&&&&....::'
+   '''''MMMMM88&&&&'''''
+   jgs   'MMM8&&&'
+
+`},B={name:"C",pos:15,goods:2,launchCost:15,display:`
+ ~+       *       +
+    '                  |
+()    .-.,="\`\`"=.    - o -
+      '=/_       \\     |
+   *   |  '=._    |
+              \`=./\`,        '
+     .   '=.__.=' \`='      *
+                      +
+ O jgs  *        '       .
+
+`},N={name:"D",pos:30,goods:5,launchCost:30,display:`
+     .        ___---___
+           .--\\        --.     .   .
+         ./.;_.\\     __/~ \\.
+    .   /;  / \`-'  __\\    . \\
+       / ,--'     / .   .;   \\      |
+      | .|       /       __   |    -O-
+     |__/    __ |  . ;   \\ | . |    |
+     |      /  \\\\_    . ;| \\___|
+o    |      \\  .~\\\\___,--'     |
+      |     | . ; ~~~~\\_    __|
+       \\    \\   .  .  ; \\  /_/
+   .    \\   /         . |  ~/    .
+ .       ~\\ \\   .      /  /~
+           ~--___ ; ___--~
+      .          ---         .    -JT
+
+`},w="state",x=()=>({credits:5,gameTick:0,ships:[{name:"Ship 1",destination1:E,destination2:D,pos:0,direction:!0,speed:1,capacity:1,upgradeSpeedCost:5,upgradeCapacityCost:8}]}),O=()=>{const t=localStorage.getItem(w);return t?JSON.parse(t):x()},b=t=>{localStorage.setItem(w,JSON.stringify(t))},P=()=>{const t=x();return b(t),t},U=t=>new Promise(n=>setTimeout(n,t)),L=[D,B,N],j=5,k=8,G=1e3;let c=x();const Q=async t=>{if(c.credits>=t.upgradeSpeedCost&&t.speed<4)switch(t.speed+=1,c.credits-=t.upgradeSpeedCost,t.speed){case 2:t.upgradeSpeedCost+=2;break;case 3:t.upgradeSpeedCost+=5;break}},q=async t=>{if(c.credits>=t.upgradeCapacityCost&&t.capacity<4)switch(t.capacity+=1,c.credits-=t.upgradeCapacityCost,t.capacity){case 2:t.upgradeCapacityCost+=3;break;case 3:t.upgradeCapacityCost+=7;break}},F=async t=>{if(c.credits>=t.launchCost){const n={name:"Ship "+(c.ships.length+1),destination1:E,destination2:t,speed:1,capacity:1,pos:0,direction:!0,upgradeSpeedCost:j,upgradeCapacityCost:k};c.credits-=t.launchCost,t.launchCost=Math.floor(t.launchCost*1.5),c.ships.push(n)}},h=[],v=(t,n)=>{h.push({item:t,upgradeFunc:n})},I=[],J=(t,n)=>{I.push({item:t,upgradeFunc:n})},y=({id:t,textContent:n,onclick:r,disabled:p})=>{const s=d({id:t,elementTypeArg:"button"});return n&&(s.textContent=n),r&&(s.onclick=r),s.disabled=!!p,s},d=({id:t,innerText:n,elementTypeArg:r})=>{let p=document.getElementById(t);if(!p){const s=r||"div";p=document.createElement(s),p.id=t}return n!==void 0&&(p.innerText=n),p},R=async()=>{K();let t=new Date;for(;;){Y(),H();const n=new Date;n.getTime()-t.getTime()>G&&(b(c),t=n),await U(300)}},K=()=>{c=O(),y({id:"resetGame",textContent:"Reset Game",onclick:()=>{confirm("Are you sure you want to reset the game?")&&X()}})},X=()=>{c=P();const t=["ships","gameInfo","shipsInfo","planetsInfo"].reverse();for(let n in t){const r=t[n],p=document.getElementById(r);if(p){p.remove();const s=document.createElement("div");s.id=r,document.body.prepend(s)}}window.scrollTo({top:0,behavior:"smooth"})},Y=async()=>{z(),c.ships.forEach(t=>{t.pos>=t.destination2.pos?(t.direction=!1,t.pos==t.destination2.pos):t.pos<=t.destination1.pos&&(t.direction=!0,t.pos==t.destination1.pos,c.gameTick!==0&&(c.credits+=t.capacity*t.destination2.goods)),t.direction?t.pos+=t.speed:t.pos-=t.speed}),c.gameTick+=1},z=async()=>{for(const t of h){const{item:n,upgradeFunc:r}=t;await r(n)}h.length=0;for(const t of I){const{item:n,upgradeFunc:r}=t;await r(n)}I.length=0},H=()=>{const t=d({id:"ships"});c.ships.forEach(e=>{const a="shipParent-"+e.name.split(" ").join("-"),o=d({id:a}),C=d({id:a+"-shipName",innerText:e.name+": ",elementTypeArg:"span"}),u=d({id:a+"-planet1",innerText:e.destination1.name,elementTypeArg:"span"});let i="";if(e.pos>0&&e.pos<e.destination2.pos){if(e.direction?i+=">":i+="<",e.capacity===2?i+="=":e.capacity===3?i+="==":e.capacity>3&&(i+="==="),e.speed===2)i+="~";else if(e.speed>2){const _=e.direction?"}":"{";e.speed===3?i+=_:e.speed>3&&(i+=_+_)}let S=0;Math.min(e.pos,i.length),e.direction?S=Math.min(e.pos,i.length):S=Math.min(e.destination2.pos-e.pos,i.length),i=i.substring(0,S),e.direction&&(i=i.split("").reverse().join(""))}const g=d({id:a+"-shipDisplay",innerText:i,elementTypeArg:"span"}),m=i.length;let l=0,f=0;e.pos<=0?(l=0,f=e.destination2.pos-1-Math.max(e.pos,0)):e.pos<e.destination2.pos&&e.direction?(l=Math.max(e.pos-1-(m-1),0),f=e.destination2.pos-1-e.pos):e.pos<e.destination2.pos&&!e.direction?(l=e.pos-1,f=Math.max(e.destination2.pos-1-e.pos-(m-1),0)):e.pos>=e.destination2.pos&&(l=e.destination2.pos-1,f=0);const T=d({id:a+"-preShip",innerText:".".repeat(l),elementTypeArg:"span"}),M=d({id:a+"-postShip",innerText:".".repeat(f),elementTypeArg:"span"}),A=d({id:a+"-planet2",innerText:e.destination2.name,elementTypeArg:"span"});o.childElementCount||(o.appendChild(C),o.appendChild(u),o.appendChild(T),o.appendChild(g),o.appendChild(M),o.appendChild(A)),document.getElementById(o.id)||t.appendChild(o)});const n=d({id:"gameInfo"});let r=d({id:"credits",innerText:"Credits: "+c.credits.toString()});n.childElementCount||n.appendChild(r);const p=d({id:"shipsInfo"});c.ships.forEach(e=>{const a="shipInfo-"+e.name.split(" ").join("-"),o=d({id:a});o.className="shipInfo";const C=d({id:a+"-"+e.name,innerText:e.name}),u=d({id:a+"-destination",innerText:"Destination: Planet "+e.destination2.name}),i=d({id:a+"-speed",innerText:"Speed: "+e.speed}),g=d({id:a+"-capacity",innerText:"Capacity: "+e.capacity}),m=y({id:a+"-addSpeed",textContent:"Upgrade speed ("+e.upgradeSpeedCost+" credits)",onclick:()=>{v(e,Q)},disabled:c.credits<e.upgradeSpeedCost||e.speed===4});e.speed===4&&(i.textContent+=" (MAX)",m.textContent="Upgrade speed",m.disabled=!0);const l=y({id:a+"-addCapacity",textContent:"Upgrade capacity ("+e.upgradeCapacityCost+" credits)",onclick:()=>{v(e,q)},disabled:c.credits<e.upgradeCapacityCost});e.capacity===4&&(g.textContent+=" (MAX)",l.textContent="Upgrade capacity",l.disabled=!0),o.childElementCount||(o.appendChild(C),o.appendChild(u),o.appendChild(i),o.appendChild(g),o.appendChild(m),o.appendChild(l)),document.getElementById(o.id)||p.appendChild(o)});const s=d({id:"planetsInfo"});L.forEach(e=>{const a="planetInfo-"+e.name.split(" ").join("-"),o=d({id:a});o.className="planetInfo";const C=d({id:a+"-name",innerText:"Planet "+e.name}),u=d({id:a+"-display",innerText:e.display});u.className="planetDisplay";const i=c.ships.find(M=>M.destination2===e);i||(u.innerText=u.innerText.replace(/[ \t]/g,"/"));const g=i?e.pos:"???",m=d({id:a+"-distance",innerText:"Distance: "+g}),l=i?e.goods:"???",f=d({id:a+"-goods",innerText:"Goods multiplier: "+l}),T=y({id:a+"addShip",textContent:"Launch new ship ("+e.launchCost+" credits)",onclick:()=>{J(e,F)},disabled:c.credits<e.launchCost});o.childElementCount||(o.appendChild(C),o.appendChild(u),o.appendChild(m),o.appendChild(f),o.appendChild(T)),document.getElementById(o.id)||s.append(o)})};R();
