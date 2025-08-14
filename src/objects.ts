@@ -1,4 +1,4 @@
-import { type Planet, type Ship } from "./types.ts";
+import { type Planet } from "./types.ts";
 
 // Ascii art from https://www.asciiart.eu/space/planets
 export const planetA: Planet = {name: "A", pos: 0, goods: 1, launchCost: 0};
@@ -59,15 +59,3 @@ o    |      \\  .~\\\\___,--'     |
       .          ---         .    -JT
 
 `};
-
-export const ship1: Ship = {
-  name: "Ship 1",
-  destination1: planetA,
-  destination2: planetB,
-  pos: 0,
-  direction: true,
-  speed: 1,
-  capacity: 1,
-  upgradeSpeedCost: 5,
-  upgradeCapacityCost: 8
-};

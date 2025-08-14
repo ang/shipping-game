@@ -1,5 +1,6 @@
-import { type Planet, type Ship } from "./types.ts";
-import { planetA, planetB, planetC, planetD, ship1 } from "./objects.ts";
+import { type Planet, type Ship, type State } from "./types.ts";
+import { planetA, planetB, planetC, planetD } from "./objects.ts";
+import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -8,15 +9,14 @@ const destinationPlanets = [planetB, planetC, planetD];
 const upgradeSpeedCost = 5;
 const upgradeCapacityCost = 8;
 
-const ships = [ship1];
+const saveStateTimeMs = 5000;
 
-let credits = 5;
-let gameTick = 0;
+let state: State = getDefaultState();
 
 const upgradeShipSpeed = async (ship: Ship) => {
-  if (credits >= ship.upgradeSpeedCost && ship.speed < 4) {
+  if (state.credits >= ship.upgradeSpeedCost && ship.speed < 4) {
     ship.speed += 1;
-    credits -= ship.upgradeSpeedCost;
+    state.credits -= ship.upgradeSpeedCost;
 
     switch(ship.speed) {
       case 2:
@@ -30,9 +30,9 @@ const upgradeShipSpeed = async (ship: Ship) => {
 }
 
 const upgradeShipCapacity = async (ship: Ship) => {
-  if (credits >= ship.upgradeCapacityCost && ship.capacity < 4) {
+  if (state.credits >= ship.upgradeCapacityCost && ship.capacity < 4) {
     ship.capacity += 1;
-    credits -= ship.upgradeCapacityCost;
+    state.credits -= ship.upgradeCapacityCost;
     switch(ship.capacity) {
       case 2:
         ship.upgradeCapacityCost += 3;
@@ -45,9 +45,9 @@ const upgradeShipCapacity = async (ship: Ship) => {
 }
 
 const addShipToPlanet = async (planet: Planet) => {
-  if (credits >= planet.launchCost) {
+  if (state.credits >= planet.launchCost) {
     const ship: Ship = {
-      name: "Ship " + (ships.length + 1),
+      name: "Ship " + (state.ships.length + 1),
       destination1: planetA,
       destination2: planet,
       speed: 1,
@@ -58,11 +58,11 @@ const addShipToPlanet = async (planet: Planet) => {
       upgradeCapacityCost,
     }
 
-    credits -= planet.launchCost;
+    state.credits -= planet.launchCost;
 
     planet.launchCost = Math.floor(planet.launchCost * 1.5);
 
-    ships.push(ship);
+    state.ships.push(ship);
   }
 }
 
@@ -128,20 +128,72 @@ const debugPauseUntilClick = () => {
 };
 
 const main = async () => {
+  init();
+
+  let saveStateCurrTime = new Date();
+
   while (true) {
     updates();
     display();
+
+    const saveStateEndTime = new Date();
+    const saveStateElapsedTimeMs = saveStateEndTime.getTime() - saveStateCurrTime.getTime();
+    if (saveStateElapsedTimeMs > saveStateTimeMs) {
+      saveState(state);
+      saveStateCurrTime = saveStateEndTime;
+    }
+
     // TODO: Only show button etc when in debug mode
     // TODO: even more sophisticated would be start, stop, next
     // await debugPauseUntilClick();
+
     await sleep(300);
   }
+}
+
+const init = () => {
+  state = loadState();
+
+  // Configure reset button
+  getOrCreateButton({
+    id: "resetGame",
+    textContent: "Reset Game",
+    onclick:  () => {
+      const userConfirmed = confirm("Are you sure you want to reset the game?");
+      if (userConfirmed) {
+        resetGame();
+      }
+    },
+  });
+}
+
+const resetGame = () => {
+  state = resetState();
+
+  // TODO: Pretty hacky display reset. I remove all the elements and then
+  // put readd them back with prepend. Using prepend because I have some
+  // items like the resetGame button that I don't remove and readd
+  // Probably ideally I would remove everything and readd it for a true
+  // refresh?
+  const elementIdsToRemove = ["ships", "gameInfo", "shipsInfo", "planetsInfo"].reverse();
+  for (let i in elementIdsToRemove) {
+    const elementId = elementIdsToRemove[i];
+    const elementToRemove = document.getElementById(elementId);
+    if (elementToRemove) {
+      elementToRemove.remove();
+      const newElement = document.createElement('div')
+      newElement.id = elementId;
+      document.body.prepend(newElement);
+    }
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const updates = async () => {
   upgradeUpdates();
 
-  ships.forEach((ship) => {
+  state.ships.forEach((ship) => {
     if (ship.pos >= ship.destination2.pos) {
       ship.direction = false;
       ship.pos == ship.destination2.pos
@@ -149,8 +201,8 @@ const updates = async () => {
     else if (ship.pos <= ship.destination1.pos) {
       ship.direction = true;
       ship.pos == ship.destination1.pos
-      if (gameTick !== 0) {
-        credits += ship.capacity * ship.destination2.goods;
+      if (state.gameTick !== 0) {
+        state.credits += ship.capacity * ship.destination2.goods;
       }
     }
     if (ship.direction) {
@@ -160,7 +212,7 @@ const updates = async () => {
     }
   });
 
-  gameTick += 1;
+  state.gameTick += 1;
 }
 
 const upgradeUpdates = async () => {
@@ -181,7 +233,7 @@ const display = () => {
   // Ship Display
   const shipsDiv = getOrCreateElementById({id: "ships"});
 
-  ships.forEach((ship) => {
+  state.ships.forEach((ship) => {
     const parentId = "shipParent-" + ship.name.split(" ").join("-");
     const parentDiv = getOrCreateElementById({id: parentId});
     const shipName = getOrCreateElementById({id: parentId + "-shipName", innerText: ship.name + ": ", elementTypeArg: "span"});
@@ -271,7 +323,7 @@ const display = () => {
 
   let creditsDiv = getOrCreateElementById({
     id: "credits",
-    innerText: "Credits: " + credits.toString(),
+    innerText: "Credits: " + state.credits.toString(),
   });
   if (!gameInfoDiv.childElementCount) {
     gameInfoDiv.appendChild(creditsDiv);
@@ -284,11 +336,11 @@ const display = () => {
   //   gameTickDiv.id = gameTickId;
   //   gameInfoDiv?.appendChild(gameTickDiv);
   // }
-  // gameTickDiv.innerText = "Game tick: " + gameTick.toString();
+  // gameTickDiv.innerText = "Game tick: " + state.gameTick.toString();
 
   // Ships Info
   const shipsInfoDiv = getOrCreateElementById({id: "shipsInfo"});
-  ships.forEach((ship) => {
+  state.ships.forEach((ship) => {
     const shipInfoId = "shipInfo-" + ship.name.split(" ").join("-");
     const shipInfoDiv = getOrCreateElementById({id: shipInfoId});
     shipInfoDiv.className = "shipInfo";
@@ -302,7 +354,7 @@ const display = () => {
       id: shipInfoId + "-addSpeed",
       textContent: "Upgrade speed " + "(" + ship.upgradeSpeedCost + " credits)",
       onclick:  () => { addToShipUpgradeQueue(ship, upgradeShipSpeed) },
-      disabled: credits < ship.upgradeSpeedCost || ship.speed === 4,
+      disabled: state.credits < ship.upgradeSpeedCost || ship.speed === 4,
     });
     if (ship.speed === 4) {
       speed.textContent += " (MAX)";
@@ -314,7 +366,7 @@ const display = () => {
       id: shipInfoId + "-addCapacity",
       textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
       onclick: () => { addToShipUpgradeQueue(ship, upgradeShipCapacity) },
-      disabled: credits < ship.upgradeCapacityCost,
+      disabled: state.credits < ship.upgradeCapacityCost,
     });
     if (ship.capacity === 4) {
       capacity.textContent += " (MAX)";
@@ -346,7 +398,7 @@ const display = () => {
     const planetName = getOrCreateElementById({id: planetId + "-name", innerText: "Planet " + planet.name});
     const planetDisplay = getOrCreateElementById({id: planetId + "-display", innerText: planet.display});
     planetDisplay.className = "planetDisplay";
-    const hasShipsInPlanet = ships.find((ship) => ship.destination2 === planet);
+    const hasShipsInPlanet = state.ships.find((ship) => ship.destination2 === planet);
     if (!hasShipsInPlanet) {
       planetDisplay.innerText = planetDisplay.innerText.replace(/[ \t]/g, '/');
     }
@@ -362,7 +414,7 @@ const display = () => {
       onclick: () => {
         addToPlanetUpgradeQueue(planet, addShipToPlanet);
       },
-      disabled: credits < planet.launchCost,
+      disabled: state.credits < planet.launchCost,
     });
     if (!planetInfo.childElementCount) {
       planetInfo.appendChild(planetName);

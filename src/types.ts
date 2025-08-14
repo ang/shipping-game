@@ -18,3 +18,9 @@ export type Ship = {
    upgradeSpeedCost: number;
    upgradeCapacityCost: number;
 }
+
+export type State = {
+  credits: number;
+  gameTick: number;
+  ships: Ship[];
+}
