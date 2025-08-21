@@ -1,8 +1,12 @@
-import { type State, type Planet } from "./types.ts";
+import { type State, type Planet, type Miner } from "./types.ts";
 import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 
 const MINING_DEPTH = 10;
+const MINING_WIDTH = 10;
+
+const ADD_MINER_BASE_COST = 200;
+const REMOVE_MINER_BASE_COST = 200;
 
 export const updateMining = async (state: State) => {
   for (const planetName in state.minersByPlanetName) {
@@ -44,31 +48,113 @@ export const getOrCreateMiningResourcesDiv = (state: State, planet: Planet): HTM
 }
 
 const researchMining = async (planet: Planet, state: State) => {
+  if (canAddMiner(state, planet.specialResourceCost, state.minersByPlanetName[planet.name] || [])) {
     state.miningPlanets.push(planet);
-    state.minersByPlanetName[planet.name] = []
-    state.minersByPlanetName[planet.name].push({planet, pos: 0, direction: true});
+    addMiner(planet, state, planet.specialResourceCost);
+  }
 }
 
 export const getOrCreateResearchMiningButton = (state: State, planet: Planet): HTMLButtonElement => {
-    // Only show when you have launched ships on all planets
-    const researchMiningButton = getOrCreateButton({
-      id: `${planet.name}-researchMining`,
-      textContent: `Research mining ${planet.specialResourceName} (${planet.specialResourceCost} credits)`,
+  // Only show when you have launched ships on all planets
+  const researchMiningButton = getOrCreateButton({
+    id: `${planet.name}-researchMining`,
+    textContent: `Research mining ${planet.specialResourceName} (${planet.specialResourceCost} credits)`,
+    onclick: () => {
+      addToUpgradeQueue({fn: researchMining, params: [planet, state]});
+    },
+    disabled: state.credits < planet.specialResourceCost,
+  });
+
+  const planetSet: Set<string> = new Set();
+  state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
+  const researchMiningUnlocked = planetSet.size >= 3;
+  const hasResearch = Boolean(state.minersByPlanetName[planet.name]);
+  const displayButton = researchMiningUnlocked && !hasResearch;
+
+  researchMiningButton.style.display = displayButton ? 'block' : 'none';
+
+  return researchMiningButton;
+}
+
+const isMaxMiners = (miners: Miner[]): boolean => {
+  return miners.length >= MINING_WIDTH;
+}
+
+const canAddMiner = (state: State, cost: number, miners: Miner[]): boolean => {
+  return state.credits >= cost && !isMaxMiners(miners);
+}
+
+const addMiner = async (planet: Planet, state: State, cost: number) => {
+  if (!state.minersByPlanetName[planet.name]) {
+    state.minersByPlanetName[planet.name] = [];
+  }
+
+  const miners = state.minersByPlanetName[planet.name];
+
+  if (canAddMiner(state, cost, miners)) {
+    miners.push({planet, pos: 0, direction: true});
+    state.credits -= cost;
+  }
+}
+
+export const getOrCreateAddMinerButton = (state: State, planet: Planet): HTMLButtonElement => {
+  const miners = state.minersByPlanetName[planet.name] || [];
+  const addMinerCost = ADD_MINER_BASE_COST * (miners).length
+  const isCanAddMiner = canAddMiner(state, addMinerCost, miners);
+
+  const addMinerButton = getOrCreateButton({
+    id: `${planet.name}-addMiner`,
+    textContent: isMaxMiners(miners) ? `Add miner` : `Add miner (${addMinerCost} credits)`,
+    onclick: () => {
+      addToUpgradeQueue({fn: addMiner, params: [planet, state, addMinerCost]});
+    },
+    disabled: !isCanAddMiner,
+  });
+
+  const hasMining = Boolean(state.minersByPlanetName[planet.name]);
+  addMinerButton.style.display = hasMining ? 'block' : 'none';
+
+  return addMinerButton;
+}
+
+const isMinMiners = (miners: Miner[]): boolean => {
+  return miners.length <= 1;
+}
+
+const canRemoveMiner = (state: State, cost: number, miners: Miner[]): boolean => {
+  return state.credits >= cost && !isMinMiners(miners);
+}
+
+const removeMiner = async (planet: Planet, state: State, cost: number) => {
+  if (!state.minersByPlanetName[planet.name]) {
+    state.minersByPlanetName[planet.name] = [];
+  }
+
+  const miners = state.minersByPlanetName[planet.name];
+
+  if (canRemoveMiner(state, cost, miners)) {
+    miners.pop();
+    state.credits -= cost;
+  }
+}
+
+export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTMLButtonElement => {
+    const miners = state.minersByPlanetName[planet.name] || [];
+    const removeMinerCost = REMOVE_MINER_BASE_COST * (miners).length
+
+    const removeMinerButton = getOrCreateButton({
+      id: `${planet.name}-removeMiner`,
+      textContent: isMinMiners(miners) ? `Remove miner` : `Remove miner (${removeMinerCost} credits)`,
       onclick: () => {
-        addToUpgradeQueue({fn: researchMining, params: [planet, state]});
+        addToUpgradeQueue({fn: removeMiner, params: [planet, state, removeMinerCost]});
       },
-      disabled: !planet.specialResourceCost || state.credits < planet.specialResourceCost,
+      disabled: !canRemoveMiner(state, removeMinerCost, miners),
     });
 
-    const planetSet: Set<string> = new Set();
-    state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
-    const researchMiningUnlocked = planetSet.size >= 3;
-    const hasResearch = Boolean(state.minersByPlanetName[planet.name]);
-    const displayButton = researchMiningUnlocked && !hasResearch;
+    const hasMining = Boolean(state.minersByPlanetName[planet.name]);
+    removeMinerButton.style.display = hasMining ? 'block' : 'none';
 
-    researchMiningButton.style.display = displayButton ? 'block' : 'none';
-
-    return researchMiningButton;
+    return removeMinerButton;
 }
 
 export const getOrCreateMiningDisplay = (state: State, planet: Planet): HTMLElement => {
@@ -78,7 +164,7 @@ export const getOrCreateMiningDisplay = (state: State, planet: Planet): HTMLElem
   if (miners) {
     let miningDisplayInnerText = "";
     for (let row = 0; row < MINING_DEPTH; row++) {
-      for (let col = 0; col < MINING_DEPTH; col++) {
+      for (let col = 0; col < MINING_WIDTH; col++) {
         const currMiner = miners[col];
         if (currMiner && currMiner.pos === row) {
           if (currMiner.direction) {

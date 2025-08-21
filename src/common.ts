@@ -16,7 +16,13 @@ export const getOrCreateElementById = (
 
 export const getOrCreateButton = (
   { id, textContent, onclick, disabled }:
-  { id: string, textContent?: string, onclick?: () => void, parentDiv?: HTMLElement, disabled?: boolean}
+  {
+    id: string,
+    textContent?: string,
+    onclick?: () => void,
+    parentDiv?: HTMLElement,
+    disabled?: boolean,
+  }
 ): HTMLButtonElement => {
   const newButton = getOrCreateElementById({id, elementTypeArg: "button"}) as HTMLButtonElement;
   if (textContent) {

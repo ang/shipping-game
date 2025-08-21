@@ -2,7 +2,7 @@ import { type Planet, type Ship, type State } from "./types.ts";
 import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
 import { getOrCreateElementById, getOrCreateButton } from "./common.ts";
-import { updateMining, getOrCreateMiningResourcesDiv, getOrCreateResearchMiningButton, getOrCreateMiningDisplay } from "./mining.ts";
+import { updateMining, getOrCreateMiningResourcesDiv, getOrCreateResearchMiningButton, getOrCreateMiningDisplay, getOrCreateAddMinerButton, getOrCreateRemoveMinerButton } from "./mining.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -301,31 +301,27 @@ const display = () => {
     const shipName = getOrCreateElementById({id: shipInfoId + "-" + ship.name, innerText: ship.name});
     const destination = getOrCreateElementById({id: shipInfoId + "-destination", innerText: "Destination: Planet " + ship.destination2.name});
     const speed = getOrCreateElementById({id: shipInfoId + "-speed", innerText: "Speed: " + ship.speed});
+    if (ship.speed === 4) {
+      speed.textContent += " (MAX)";
+    }
     const capacity = getOrCreateElementById({id: shipInfoId + "-capacity", innerText: "Capacity: " + ship.capacity});
+    if (ship.capacity === 4) {
+      capacity.textContent += " (MAX)";
+    }
 
     const addSpeedButton = getOrCreateButton({
       id: shipInfoId + "-addSpeed",
-      textContent: "Upgrade speed " + "(" + ship.upgradeSpeedCost + " credits)",
+      textContent: ship.speed === 4 ? "Upgrade speed" : `Upgrade speed (${ship.upgradeSpeedCost} credits)`,
       onclick:  () => { addToUpgradeQueue({ fn: upgradeShipSpeed, params: [ship] }) },
       disabled: state.credits < ship.upgradeSpeedCost || ship.speed === 4,
     });
-    if (ship.speed === 4) {
-      speed.textContent += " (MAX)";
-      addSpeedButton.textContent = "Upgrade speed"
-      addSpeedButton.disabled = true;
-    }
 
     const addCapacityButton = getOrCreateButton({
       id: shipInfoId + "-addCapacity",
-      textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
+      textContent: ship.capacity === 4 ? "Upgrade capacity" : `Upgrade capacity (${ship.upgradeCapacityCost} credits)`,
       onclick: () => { addToUpgradeQueue({ fn: upgradeShipCapacity, params: [ship] }) },
-      disabled: state.credits < ship.upgradeCapacityCost,
+      disabled: state.credits < ship.upgradeCapacityCost || ship.capacity === 4,
     });
-    if (ship.capacity === 4) {
-      capacity.textContent += " (MAX)";
-      addCapacityButton.textContent = "Upgrade capacity"
-      addCapacityButton.disabled = true;
-    }
 
     if (!shipInfoDiv.childElementCount) {
       shipInfoDiv.appendChild(shipName);
@@ -380,7 +376,11 @@ const display = () => {
 
     // Mining
     const researchMiningButton = getOrCreateResearchMiningButton(state, planet);
+    const addMinerButton = getOrCreateAddMinerButton(state, planet);
+    const removeMinerButton = getOrCreateRemoveMinerButton(state, planet);
     planetInfo.appendChild(researchMiningButton);
+    planetInfo.appendChild(addMinerButton);
+    planetInfo.appendChild(removeMinerButton);
     if (state.minersByPlanetName[planet.name]) {
       const miningDisplay = getOrCreateMiningDisplay(state, planet);
       planetDisplay.insertAdjacentElement('afterend', miningDisplay);

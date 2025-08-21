@@ -4,8 +4,8 @@ export type Planet = {
   goods: number;
   display?: string;
   launchCost: number;
-  specialResourceName?: string;
-  specialResourceCost?: number;
+  specialResourceName: string;
+  specialResourceCost: number;
 }
 
 
@@ -21,7 +21,7 @@ export type Ship = {
    upgradeCapacityCost: number;
 }
 
-type Miner = {
+export type Miner = {
   planet: Planet;
   pos: number;
   direction: boolean; // True means going up in pos

@@ -1,7 +1,15 @@
 import { type Planet } from "./types.ts";
 
 // Ascii art from https://www.asciiart.eu/space/planets
-export const planetA: Planet = {name: "A", pos: 0, goods: 1, launchCost: 0};
+export const planetA: Planet = {
+  name: "A",
+  pos: 0,
+  goods: 1,
+  launchCost: 0,
+  specialResourceName: "n/a",
+  specialResourceCost: 0,
+};
+
 export const planetB: Planet = {
   name: "B",
   pos: 8,
