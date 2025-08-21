@@ -2,6 +2,8 @@ import { type Planet, type Ship, type State } from "./types.ts";
 import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
 import { getOrCreateElementById, getOrCreateButton } from "./common.ts";
+import { updateMining, getOrCreateMiningResourcesDiv, getOrCreateResearchMiningButton, getOrCreateMiningDisplay } from "./mining.ts";
+import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -65,19 +67,6 @@ const addShipToPlanet = async (planet: Planet) => {
 
     state.ships.push(ship);
   }
-}
-
-type UpgradeQueueMsg<T> = {
-  item: T;
-  upgradeFunc: (item: T) => Promise<void>;
-}
-const shipUpgradeQueue: UpgradeQueueMsg<Ship>[] = [];
-const addToShipUpgradeQueue = (item: Ship, upgradeFunc: (item: Ship) => Promise<void>) => {
-    shipUpgradeQueue.push({item, upgradeFunc});
-}
-const planetUpgradeQueue: UpgradeQueueMsg<Planet>[] = [];
-const addToPlanetUpgradeQueue = (item: Planet, upgradeFunc: (item: Planet) => Promise<void>) => {
-    planetUpgradeQueue.push({item, upgradeFunc});
 }
 
 // @ts-ignore declared but its value is never read
@@ -180,39 +169,9 @@ const updates = async () => {
     }
   });
 
-  for (const planetName in state.minersByPlanetName) {
-    const miners = state.minersByPlanetName[planetName];
-    for (let i = 0; i < miners.length; i++) {
-      const miner = miners[i];
-      if (miner.pos === 0) {
-        miner.direction = true;
-      } else if (miner.pos === 9) {
-        // TODO fix this constant
-        miner.direction = false;
-      }
-      if (miner.direction) {
-        miner.pos += 1;
-      } else {
-        miner.pos -= 1;
-      }
-    }
-  }
+  updateMining(state);
 
   state.gameTick += 1;
-}
-
-const upgradeUpdates = async () => {
-  // This upgrade queuing system to prevent Nathan from cheating hopefully.
-  for (const queueMsg of shipUpgradeQueue) {
-    const { item, upgradeFunc } = queueMsg;
-    await upgradeFunc(item);
-  }
-  shipUpgradeQueue.length = 0;
-  for (const queueMsg of planetUpgradeQueue) {
-    const { item, upgradeFunc } = queueMsg;
-    await upgradeFunc(item);
-  }
-  planetUpgradeQueue.length = 0;
 }
 
 const display = () => {
@@ -307,12 +266,20 @@ const display = () => {
   // Game info
   const gameInfoDiv = getOrCreateElementById({id: "gameInfo"});
 
-  let creditsDiv = getOrCreateElementById({
+  const creditsDiv = getOrCreateElementById({
     id: "credits",
     innerText: "Credits: " + state.credits.toString(),
   });
+
+  const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state, planetB);
+  const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state, planetC);
+  const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state, planetD);
+
   if (!gameInfoDiv.childElementCount) {
     gameInfoDiv.appendChild(creditsDiv);
+    gameInfoDiv.appendChild(planetBResourcesDiv);
+    gameInfoDiv.appendChild(planetCResourcesDiv);
+    gameInfoDiv.appendChild(planetDResourcesDiv);
   }
 
   // const gameTickId = "game";
@@ -339,7 +306,7 @@ const display = () => {
     const addSpeedButton = getOrCreateButton({
       id: shipInfoId + "-addSpeed",
       textContent: "Upgrade speed " + "(" + ship.upgradeSpeedCost + " credits)",
-      onclick:  () => { addToShipUpgradeQueue(ship, upgradeShipSpeed) },
+      onclick:  () => { addToUpgradeQueue({ fn: upgradeShipSpeed, params: [ship] }) },
       disabled: state.credits < ship.upgradeSpeedCost || ship.speed === 4,
     });
     if (ship.speed === 4) {
@@ -351,7 +318,7 @@ const display = () => {
     const addCapacityButton = getOrCreateButton({
       id: shipInfoId + "-addCapacity",
       textContent: "Upgrade capacity " + "(" + ship.upgradeCapacityCost + " credits)",
-      onclick: () => { addToShipUpgradeQueue(ship, upgradeShipCapacity) },
+      onclick: () => { addToUpgradeQueue({ fn: upgradeShipCapacity, params: [ship] }) },
       disabled: state.credits < ship.upgradeCapacityCost,
     });
     if (ship.capacity === 4) {
@@ -398,7 +365,7 @@ const display = () => {
       id: planetId + "addShip",
       textContent: "Launch new ship (" + planet.launchCost + " credits)",
       onclick: () => {
-        addToPlanetUpgradeQueue(planet, addShipToPlanet);
+        addToUpgradeQueue({ fn: addShipToPlanet, params: [planet] });
       },
       disabled: state.credits < planet.launchCost,
     });
@@ -409,52 +376,13 @@ const display = () => {
       planetInfo.appendChild(distance);
       planetInfo.appendChild(goodsMultiplier);
       planetInfo.appendChild(addShipButton);
-
-
     }
 
-    // Mining stuff for planet
-    const planetSet: Set<string> = new Set();
-    state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
-    if (planetSet.size >= 3) {
-      // Only show when you have launched ships on all planets
-      const researchMiningButton = getOrCreateButton({
-        id: planetId + "researchMining",
-        textContent: `Research mining ${planet.specialResourceName} (${planet.specialResourceCost} credits)`,
-        onclick: () => {
-          // TODO do I need this?
-          state.miningPlanets.push(planet);
-          state.minersByPlanetName[planet.name] = []
-          state.minersByPlanetName[planet.name].push({planet, pos: 0, direction: true});
-        },
-      });
-      planetInfo.appendChild(researchMiningButton);
-    }
-    const minersByPlanetName = state.minersByPlanetName[planet.name];
-    if (minersByPlanetName) {
-      // Find planet display and then add it under that
-      // TODO make it a const
-      const maxMiningLines = 10;
-      const miningDisplay = getOrCreateElementById({id: planetId + "-mining-display", innerText: "hello world"});
-      miningDisplay.innerText = "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n";
-      // For each miner, update the innerText
-      let miningDisplayInnerText = "";
-      for (let row = 0; row < maxMiningLines; row++) {
-        for (let col = 0; col < maxMiningLines; col++) {
-          const currMiner = minersByPlanetName[col];
-          if (currMiner && currMiner.pos === row) {
-              miningDisplayInnerText += "v";
-          } else if (currMiner && row < currMiner.pos) {
-            miningDisplayInnerText += "|";
-          } else {
-            miningDisplayInnerText += "~";
-          }
-        }
-
-        miningDisplayInnerText += "\n";
-      }
-      miningDisplay.innerText = miningDisplayInnerText;
-
+    // Mining
+    const researchMiningButton = getOrCreateResearchMiningButton(state, planet);
+    planetInfo.appendChild(researchMiningButton);
+    if (state.minersByPlanetName[planet.name]) {
+      const miningDisplay = getOrCreateMiningDisplay(state, planet);
       planetDisplay.insertAdjacentElement('afterend', miningDisplay);
     }
 

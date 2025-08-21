@@ -23,6 +23,7 @@ export const getDefaultState = (): State => {
     ships: [ship1],
     miningPlanets: [],
     minersByPlanetName: {},
+    miningResourcesByPlanetName: {},
   }
 
   return defaultState;

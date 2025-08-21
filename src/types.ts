@@ -31,10 +31,15 @@ type MinersByPlanetName = {
   [key: string]: Miner[];
 }
 
+type MiningResourcesByPlanetName = {
+  [key: string]: number;
+}
+
 export type State = {
   credits: number;
   gameTick: number;
   ships: Ship[];
   miningPlanets: Planet[];
   minersByPlanetName: MinersByPlanetName;
+  miningResourcesByPlanetName: MiningResourcesByPlanetName;
 }

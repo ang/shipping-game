@@ -1,7 +1,7 @@
 export const getOrCreateElementById = (
   {id, innerText, elementTypeArg}:
   {id: string, innerText?: string, elementTypeArg?: string}
-) => {
+): HTMLElement => {
     let element = document.getElementById(id);
     if (!element) {
       const elementType = elementTypeArg || "div";
@@ -17,7 +17,7 @@ export const getOrCreateElementById = (
 export const getOrCreateButton = (
   { id, textContent, onclick, disabled }:
   { id: string, textContent?: string, onclick?: () => void, parentDiv?: HTMLElement, disabled?: boolean}
-) => {
+): HTMLButtonElement => {
   const newButton = getOrCreateElementById({id, elementTypeArg: "button"}) as HTMLButtonElement;
   if (textContent) {
     newButton.textContent = textContent;
