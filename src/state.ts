@@ -17,9 +17,12 @@ export const getDefaultState = (): State => {
   };
 
   const defaultState: State = {
-    credits: 5,
+    // credits: 5,
+    credits: 5000,
     gameTick: 0,
     ships: [ship1],
+    miningPlanets: [],
+    minersByPlanetName: {},
   }
 
   return defaultState;

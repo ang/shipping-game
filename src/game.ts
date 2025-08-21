@@ -1,6 +1,7 @@
 import { type Planet, type Ship, type State } from "./types.ts";
 import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
+import { getOrCreateElementById, getOrCreateButton } from "./common.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -78,39 +79,6 @@ const planetUpgradeQueue: UpgradeQueueMsg<Planet>[] = [];
 const addToPlanetUpgradeQueue = (item: Planet, upgradeFunc: (item: Planet) => Promise<void>) => {
     planetUpgradeQueue.push({item, upgradeFunc});
 }
-
-const getOrCreateButton = (
-  { id, textContent, onclick, disabled }:
-  { id: string, textContent?: string, onclick?: () => void, parentDiv?: HTMLElement, disabled?: boolean}
-) => {
-  const newButton = getOrCreateElementById({id, elementTypeArg: "button"}) as HTMLButtonElement;
-  if (textContent) {
-    newButton.textContent = textContent;
-  }
-  if (onclick) {
-    newButton.onclick = onclick;
-  }
-
-  newButton.disabled = !!disabled;
-
-  return newButton;
-};
-
-const getOrCreateElementById = (
-  {id, innerText, elementTypeArg}:
-  {id: string, innerText?: string, elementTypeArg?: string}
-) => {
-    let element = document.getElementById(id);
-    if (!element) {
-      const elementType = elementTypeArg || "div";
-      element = document.createElement(elementType);
-      element.id = id
-    }
-    if (innerText !== undefined) {
-      element.innerText = innerText;
-    }
-    return element;
-};
 
 // @ts-ignore declared but its value is never read
 const debugPauseUntilClick = () => {
@@ -211,6 +179,24 @@ const updates = async () => {
       ship.pos -= ship.speed;
     }
   });
+
+  for (const planetName in state.minersByPlanetName) {
+    const miners = state.minersByPlanetName[planetName];
+    for (let i = 0; i < miners.length; i++) {
+      const miner = miners[i];
+      if (miner.pos === 0) {
+        miner.direction = true;
+      } else if (miner.pos === 9) {
+        // TODO fix this constant
+        miner.direction = false;
+      }
+      if (miner.direction) {
+        miner.pos += 1;
+      } else {
+        miner.pos -= 1;
+      }
+    }
+  }
 
   state.gameTick += 1;
 }
@@ -398,7 +384,7 @@ const display = () => {
     const planetName = getOrCreateElementById({id: planetId + "-name", innerText: "Planet " + planet.name});
     const planetDisplay = getOrCreateElementById({id: planetId + "-display", innerText: planet.display});
     planetDisplay.className = "planetDisplay";
-    const hasShipsInPlanet = state.ships.find((ship) => ship.destination2 === planet);
+    const hasShipsInPlanet = state.ships.find((ship) => ship.destination2.name === planet.name);
     if (!hasShipsInPlanet) {
       planetDisplay.innerText = planetDisplay.innerText.replace(/[ \t]/g, '/');
     }
@@ -416,12 +402,60 @@ const display = () => {
       },
       disabled: state.credits < planet.launchCost,
     });
+
     if (!planetInfo.childElementCount) {
       planetInfo.appendChild(planetName);
       planetInfo.appendChild(planetDisplay);
       planetInfo.appendChild(distance);
       planetInfo.appendChild(goodsMultiplier);
       planetInfo.appendChild(addShipButton);
+
+
+    }
+
+    // Mining stuff for planet
+    const planetSet: Set<string> = new Set();
+    state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
+    if (planetSet.size >= 3) {
+      // Only show when you have launched ships on all planets
+      const researchMiningButton = getOrCreateButton({
+        id: planetId + "researchMining",
+        textContent: `Research mining ${planet.specialResourceName} (${planet.specialResourceCost} credits)`,
+        onclick: () => {
+          // TODO do I need this?
+          state.miningPlanets.push(planet);
+          state.minersByPlanetName[planet.name] = []
+          state.minersByPlanetName[planet.name].push({planet, pos: 0, direction: true});
+        },
+      });
+      planetInfo.appendChild(researchMiningButton);
+    }
+    const minersByPlanetName = state.minersByPlanetName[planet.name];
+    if (minersByPlanetName) {
+      // Find planet display and then add it under that
+      // TODO make it a const
+      const maxMiningLines = 10;
+      const miningDisplay = getOrCreateElementById({id: planetId + "-mining-display", innerText: "hello world"});
+      miningDisplay.innerText = "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n" + "..........\n";
+      // For each miner, update the innerText
+      let miningDisplayInnerText = "";
+      for (let row = 0; row < maxMiningLines; row++) {
+        for (let col = 0; col < maxMiningLines; col++) {
+          const currMiner = minersByPlanetName[col];
+          if (currMiner && currMiner.pos === row) {
+              miningDisplayInnerText += "v";
+          } else if (currMiner && row < currMiner.pos) {
+            miningDisplayInnerText += "|";
+          } else {
+            miningDisplayInnerText += "~";
+          }
+        }
+
+        miningDisplayInnerText += "\n";
+      }
+      miningDisplay.innerText = miningDisplayInnerText;
+
+      planetDisplay.insertAdjacentElement('afterend', miningDisplay);
     }
 
     if (!document.getElementById(planetInfo.id)) {

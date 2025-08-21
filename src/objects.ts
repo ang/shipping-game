@@ -7,6 +7,8 @@ export const planetB: Planet = {
   pos: 8,
   goods: 1,
   launchCost: 9,
+  specialResourceName: "Blue Squares",
+  specialResourceCost: 1000,
   display: `
          ,MMM8&&&.
     _...MMMMM88&&&&..._
@@ -23,6 +25,8 @@ export const planetC: Planet = {
   pos: 15,
   goods: 2,
   launchCost: 15,
+  specialResourceName: "Yellow Triangles",
+  specialResourceCost: 1000,
   display: `
  ~+       *       +
     '                  |
@@ -41,6 +45,8 @@ export const planetD: Planet = {
   pos: 30,
   goods: 5,
   launchCost: 30,
+  specialResourceName: "Green Circles",
+  specialResourceCost: 4000,
   display: `
      .        ___---___
            .--\\        --.     .   .
