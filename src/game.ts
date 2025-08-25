@@ -1,7 +1,7 @@
-import { type Planet, type Ship, type State } from "./types.ts";
+import { type Planet, type Ship, type State, type Miner } from "./types.ts";
 import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
-import { getOrCreateElementById, getOrCreateButton } from "./common.ts";
+import { getOrCreateElementById, getOrCreateButton, roundValue } from "./common.ts";
 import { updateMining, getOrCreateMiningResourcesDiv, getOrCreateResearchMiningButton, getOrCreateMiningDisplay, getOrCreateAddMinerButton, getOrCreateRemoveMinerButton } from "./mining.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 
@@ -159,7 +159,10 @@ const updates = async () => {
       ship.direction = true;
       ship.pos == ship.destination1.pos
       if (state.gameTick !== 0) {
-        state.credits += ship.capacity * ship.destination2.goods;
+        const destination2 = ship.destination2;
+        const miners = state.miningInfoByPlanetName[destination2.name]?.miners || [];
+        const addingCredit = ship.capacity * getEffectiveGoodsMultipler(miners, destination2);
+        state.credits = roundValue(state.credits + addingCredit);
       }
     }
     if (ship.direction) {
@@ -244,8 +247,6 @@ const display = () => {
     }
     const preShip = getOrCreateElementById({id: parentId + "-preShip", innerText: ".".repeat(preDotsCount), elementTypeArg: "span"});
     const postShip = getOrCreateElementById({id: parentId + "-postShip", innerText: ".".repeat(postDotsCount), elementTypeArg: "span"});
-
-
 
     const planet2 = getOrCreateElementById({id: parentId + "-planet2", innerText: ship.destination2.name, elementTypeArg: "span"});
 
@@ -354,7 +355,8 @@ const display = () => {
 
     const distanceText = hasShipsInPlanet ? planet.pos : "???"
     const distance = getOrCreateElementById({id: planetId + "-distance", innerText: "Distance: " + distanceText});
-    const goodsText = hasShipsInPlanet ? planet.goods : "???"
+    const miners = state.miningInfoByPlanetName[planet.name]?.miners || [];
+    const goodsText = hasShipsInPlanet ? getEffectiveGoodsMultipler(miners, planet) : "???"
     const goodsMultiplier = getOrCreateElementById({id: planetId + "-goods", innerText: "Goods multiplier: " + goodsText});
 
     const addShipButton = getOrCreateButton({
@@ -378,18 +380,33 @@ const display = () => {
     const researchMiningButton = getOrCreateResearchMiningButton(state, planet);
     const addMinerButton = getOrCreateAddMinerButton(state, planet);
     const removeMinerButton = getOrCreateRemoveMinerButton(state, planet);
+    let pollutionPenalty = getPollutionPenalty(miners, planet);
+    const pollutionPenaltyDiv = getOrCreateElementById({id: planetId + "-pollutionPenalty", innerText: "Pollution penalty: " + pollutionPenalty});
     planetInfo.appendChild(researchMiningButton);
     planetInfo.appendChild(addMinerButton);
     planetInfo.appendChild(removeMinerButton);
-    if (state.minersByPlanetName[planet.name]) {
+    if (miners.length !== 0) {
       const miningDisplay = getOrCreateMiningDisplay(state, planet);
       planetDisplay.insertAdjacentElement('afterend', miningDisplay);
+      goodsMultiplier.insertAdjacentElement('afterend', pollutionPenaltyDiv);
     }
 
     if (!document.getElementById(planetInfo.id)) {
       planetsInfo.append(planetInfo);
     }
   });
+}
+
+const getEffectiveGoodsMultipler = (miners: Miner[], planet: Planet): number => {
+  return roundValue(planet.goods - getPollutionPenalty(miners, planet));
+}
+
+const getPollutionPenalty = (miners: Miner[], planet: Planet): number => {
+  let pollutionPenalty = (miners.length - 1) * 0.1 * planet.goods;
+  if (miners.length <= 1) {
+    pollutionPenalty = 0;
+  }
+  return roundValue(pollutionPenalty);
 }
 
 main();

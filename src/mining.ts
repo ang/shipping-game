@@ -9,8 +9,8 @@ const ADD_MINER_BASE_COST = 200;
 const REMOVE_MINER_BASE_COST = 200;
 
 export const updateMining = async (state: State) => {
-  for (const planetName in state.minersByPlanetName) {
-    const miners = state.minersByPlanetName[planetName];
+  for (const planetName in state.miningInfoByPlanetName) {
+    const miners = state.miningInfoByPlanetName[planetName].miners;
     for (let i = 0; i < miners.length; i++) {
       const miner = miners[i];
       if (miner.pos === 0) {
@@ -26,30 +26,30 @@ export const updateMining = async (state: State) => {
       }
 
       if (miner.pos === 0) {
-        if (!state.miningResourcesByPlanetName[planetName]) {
-          state.miningResourcesByPlanetName[planetName] = 0;
+        if (!state.miningInfoByPlanetName[planetName]) {
+          state.miningInfoByPlanetName[planetName] = {
+            planetName: planetName, miners: [], resources: 0
+          }
         }
-        state.miningResourcesByPlanetName[planetName]++;
+        state.miningInfoByPlanetName[planetName].resources++;
       }
     }
   }
 }
 
 export const getOrCreateMiningResourcesDiv = (state: State, planet: Planet): HTMLElement => {
-  // TODO generalize to more planets
   let miningResourcesDiv = getOrCreateElementById({
     id: `${planet.name}-mining-resources`,
-    innerText: `${planet.specialResourceName}: ${state.miningResourcesByPlanetName[planet.name] || 0}`,
+    innerText: `${planet.specialResourceName}: ${state.miningInfoByPlanetName[planet.name]?.resources || 0}`,
   });
-  const hasMining = Boolean(state.minersByPlanetName[planet.name]);
+  const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
   miningResourcesDiv.style.display = hasMining ? 'block' : 'none';
 
   return miningResourcesDiv;
 }
 
 const researchMining = async (planet: Planet, state: State) => {
-  if (canAddMiner(state, planet.specialResourceCost, state.minersByPlanetName[planet.name] || [])) {
-    state.miningPlanets.push(planet);
+  if (canAddMiner(state, planet.specialResourceCost, state.miningInfoByPlanetName[planet.name]?.miners || [])) {
     addMiner(planet, state, planet.specialResourceCost);
   }
 }
@@ -68,7 +68,7 @@ export const getOrCreateResearchMiningButton = (state: State, planet: Planet): H
   const planetSet: Set<string> = new Set();
   state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
   const researchMiningUnlocked = planetSet.size >= 3;
-  const hasResearch = Boolean(state.minersByPlanetName[planet.name]);
+  const hasResearch = Boolean(state.miningInfoByPlanetName[planet.name]);
   const displayButton = researchMiningUnlocked && !hasResearch;
 
   researchMiningButton.style.display = displayButton ? 'block' : 'none';
@@ -85,11 +85,13 @@ const canAddMiner = (state: State, cost: number, miners: Miner[]): boolean => {
 }
 
 const addMiner = async (planet: Planet, state: State, cost: number) => {
-  if (!state.minersByPlanetName[planet.name]) {
-    state.minersByPlanetName[planet.name] = [];
+  if (!state.miningInfoByPlanetName[planet.name]) {
+    state.miningInfoByPlanetName[planet.name] = {
+      planetName: planet.name, miners: [], resources: 0
+    };
   }
 
-  const miners = state.minersByPlanetName[planet.name];
+  const miners = state.miningInfoByPlanetName[planet.name].miners;
 
   if (canAddMiner(state, cost, miners)) {
     miners.push({planet, pos: 0, direction: true});
@@ -98,7 +100,7 @@ const addMiner = async (planet: Planet, state: State, cost: number) => {
 }
 
 export const getOrCreateAddMinerButton = (state: State, planet: Planet): HTMLButtonElement => {
-  const miners = state.minersByPlanetName[planet.name] || [];
+  const miners = state.miningInfoByPlanetName[planet.name]?.miners || [];
   const addMinerCost = ADD_MINER_BASE_COST * (miners).length
   const isCanAddMiner = canAddMiner(state, addMinerCost, miners);
 
@@ -111,7 +113,7 @@ export const getOrCreateAddMinerButton = (state: State, planet: Planet): HTMLBut
     disabled: !isCanAddMiner,
   });
 
-  const hasMining = Boolean(state.minersByPlanetName[planet.name]);
+  const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
   addMinerButton.style.display = hasMining ? 'block' : 'none';
 
   return addMinerButton;
@@ -126,11 +128,11 @@ const canRemoveMiner = (state: State, cost: number, miners: Miner[]): boolean =>
 }
 
 const removeMiner = async (planet: Planet, state: State, cost: number) => {
-  if (!state.minersByPlanetName[planet.name]) {
-    state.minersByPlanetName[planet.name] = [];
+  if (!state.miningInfoByPlanetName[planet.name]) {
+    return;
   }
 
-  const miners = state.minersByPlanetName[planet.name];
+  const miners = state.miningInfoByPlanetName[planet.name].miners;
 
   if (canRemoveMiner(state, cost, miners)) {
     miners.pop();
@@ -139,7 +141,7 @@ const removeMiner = async (planet: Planet, state: State, cost: number) => {
 }
 
 export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTMLButtonElement => {
-    const miners = state.minersByPlanetName[planet.name] || [];
+    const miners = state.miningInfoByPlanetName[planet.name]?.miners || [];
     const removeMinerCost = REMOVE_MINER_BASE_COST * (miners).length
 
     const removeMinerButton = getOrCreateButton({
@@ -151,7 +153,7 @@ export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTML
       disabled: !canRemoveMiner(state, removeMinerCost, miners),
     });
 
-    const hasMining = Boolean(state.minersByPlanetName[planet.name]);
+    const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
     removeMinerButton.style.display = hasMining ? 'block' : 'none';
 
     return removeMinerButton;
@@ -160,7 +162,7 @@ export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTML
 export const getOrCreateMiningDisplay = (state: State, planet: Planet): HTMLElement => {
   const miningDisplay = getOrCreateElementById({id: `${planet.name}-mining-display`});
 
-  const miners = state.minersByPlanetName[planet.name];
+  const miners = state.miningInfoByPlanetName[planet.name].miners;
   if (miners) {
     let miningDisplayInnerText = "";
     for (let row = 0; row < MINING_DEPTH; row++) {

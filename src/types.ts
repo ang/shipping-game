@@ -27,19 +27,19 @@ export type Miner = {
   direction: boolean; // True means going up in pos
 }
 
-type MinersByPlanetName = {
-  [key: string]: Miner[];
+type MiningInfo = {
+  planetName: string;
+  miners: Miner[]
+  resources: number;
 }
 
-type MiningResourcesByPlanetName = {
-  [key: string]: number;
+type MiningInfoByPlanetName = {
+  [key: string]: MiningInfo;
 }
 
 export type State = {
   credits: number;
   gameTick: number;
   ships: Ship[];
-  miningPlanets: Planet[];
-  minersByPlanetName: MinersByPlanetName;
-  miningResourcesByPlanetName: MiningResourcesByPlanetName;
+  miningInfoByPlanetName: MiningInfoByPlanetName;
 }

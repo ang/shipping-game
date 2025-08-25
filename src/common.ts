@@ -36,3 +36,8 @@ export const getOrCreateButton = (
 
   return newButton;
 };
+
+export const roundValue = (value: number, sigFigs: number = 2): number => {
+  const multiplier = 10**sigFigs;
+  return Math.round(value * multiplier) / multiplier;
+}
