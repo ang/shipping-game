@@ -42,8 +42,7 @@ export const getOrCreateMiningResourcesDiv = (state: State, planet: Planet): HTM
     id: `${planet.name}-mining-resources`,
     innerText: `${planet.specialResourceName}: ${state.miningInfoByPlanetName[planet.name]?.resources || 0}`,
   });
-  const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
-  miningResourcesDiv.style.display = hasMining ? 'block' : 'none';
+  miningResourcesDiv.style.display = isResearchUnlocked(state, planet) ? 'block' : 'none';
 
   return miningResourcesDiv;
 }
@@ -52,6 +51,12 @@ const researchMining = async (planet: Planet, state: State) => {
   if (canAddMiner(state, planet.specialResourceCost, state.miningInfoByPlanetName[planet.name]?.miners || [])) {
     addMiner(planet, state, planet.specialResourceCost);
   }
+}
+
+export const isResearchMiningAvailable = (state: State): boolean => {
+  const planetSet: Set<string> = new Set();
+  state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
+  return planetSet.size >= 3;
 }
 
 export const getOrCreateResearchMiningButton = (state: State, planet: Planet): HTMLButtonElement => {
@@ -67,13 +72,15 @@ export const getOrCreateResearchMiningButton = (state: State, planet: Planet): H
 
   const planetSet: Set<string> = new Set();
   state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });
-  const researchMiningUnlocked = planetSet.size >= 3;
-  const hasResearch = Boolean(state.miningInfoByPlanetName[planet.name]);
-  const displayButton = researchMiningUnlocked && !hasResearch;
+  const displayButton = isResearchMiningAvailable(state) && !isResearchUnlocked(state, planet);
 
   researchMiningButton.style.display = displayButton ? 'block' : 'none';
 
   return researchMiningButton;
+}
+
+export const isResearchUnlocked = (state: State, planet: Planet): boolean => {
+  return Boolean(state.miningInfoByPlanetName[planet.name]);
 }
 
 const isMaxMiners = (miners: Miner[]): boolean => {
@@ -85,7 +92,7 @@ const canAddMiner = (state: State, cost: number, miners: Miner[]): boolean => {
 }
 
 const addMiner = async (planet: Planet, state: State, cost: number) => {
-  if (!state.miningInfoByPlanetName[planet.name]) {
+  if (!isResearchUnlocked(state, planet)) {
     state.miningInfoByPlanetName[planet.name] = {
       planetName: planet.name, miners: [], resources: 0
     };
@@ -113,8 +120,7 @@ export const getOrCreateAddMinerButton = (state: State, planet: Planet): HTMLBut
     disabled: !isCanAddMiner,
   });
 
-  const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
-  addMinerButton.style.display = hasMining ? 'block' : 'none';
+  addMinerButton.style.display = isResearchUnlocked(state, planet) ? 'block' : 'none';
 
   return addMinerButton;
 }
@@ -128,7 +134,7 @@ const canRemoveMiner = (state: State, cost: number, miners: Miner[]): boolean =>
 }
 
 const removeMiner = async (planet: Planet, state: State, cost: number) => {
-  if (!state.miningInfoByPlanetName[planet.name]) {
+  if (!isResearchUnlocked(state, planet)) {
     return;
   }
 
@@ -153,8 +159,7 @@ export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTML
       disabled: !canRemoveMiner(state, removeMinerCost, miners),
     });
 
-    const hasMining = Boolean(state.miningInfoByPlanetName[planet.name]);
-    removeMinerButton.style.display = hasMining ? 'block' : 'none';
+    removeMinerButton.style.display = isResearchUnlocked(state, planet) ? 'block' : 'none';
 
     return removeMinerButton;
 }

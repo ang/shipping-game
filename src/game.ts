@@ -2,8 +2,25 @@ import { type Planet, type Ship, type State, type Miner } from "./types.ts";
 import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
 import { getOrCreateElementById, getOrCreateButton, roundValue } from "./common.ts";
-import { updateMining, getOrCreateMiningResourcesDiv, getOrCreateResearchMiningButton, getOrCreateMiningDisplay, getOrCreateAddMinerButton, getOrCreateRemoveMinerButton } from "./mining.ts";
+import {
+  getOrCreateAddMinerButton,
+  getOrCreateMiningDisplay,
+  getOrCreateMiningResourcesDiv,
+  getOrCreateRemoveMinerButton,
+  getOrCreateResearchMiningButton,
+  isResearchMiningAvailable,
+  updateMining,
+} from "./mining.ts";
+import {
+  getOrCreateAddSuperSpeedButton,
+  getOrCreateAddSuperCapacityButton,
+  MAX_CAPACITY_FROM_MINING_RESOURCES,
+  MAX_SPEED_FROM_MINING_RESOURCES,
+} from "./miningShipUpgrades.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
+
+const MAX_SPEED = 4;
+const MAX_CAPACITY = 4;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -17,7 +34,7 @@ const saveStateTimeMs = 1000;
 let state: State = getDefaultState();
 
 const upgradeShipSpeed = async (ship: Ship) => {
-  if (state.credits >= ship.upgradeSpeedCost && ship.speed < 4) {
+  if (state.credits >= ship.upgradeSpeedCost && ship.speed < MAX_SPEED) {
     ship.speed += 1;
     state.credits -= ship.upgradeSpeedCost;
 
@@ -33,7 +50,7 @@ const upgradeShipSpeed = async (ship: Ship) => {
 }
 
 const upgradeShipCapacity = async (ship: Ship) => {
-  if (state.credits >= ship.upgradeCapacityCost && ship.capacity < 4) {
+  if (state.credits >= ship.upgradeCapacityCost && ship.capacity < MAX_CAPACITY) {
     ship.capacity += 1;
     state.credits -= ship.upgradeCapacityCost;
     switch(ship.capacity) {
@@ -302,26 +319,36 @@ const display = () => {
     const shipName = getOrCreateElementById({id: shipInfoId + "-" + ship.name, innerText: ship.name});
     const destination = getOrCreateElementById({id: shipInfoId + "-destination", innerText: "Destination: Planet " + ship.destination2.name});
     const speed = getOrCreateElementById({id: shipInfoId + "-speed", innerText: "Speed: " + ship.speed});
-    if (ship.speed === 4) {
+    if (ship.speed === MAX_SPEED) {
       speed.textContent += " (MAX)";
+    } else if (ship.speed === MAX_SPEED_FROM_MINING_RESOURCES) {
+      speed.textContent += " (MAX+)";
     }
     const capacity = getOrCreateElementById({id: shipInfoId + "-capacity", innerText: "Capacity: " + ship.capacity});
-    if (ship.capacity === 4) {
+    if (ship.capacity === MAX_CAPACITY) {
       capacity.textContent += " (MAX)";
+    } else if (ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES) {
+      capacity.textContent += " (MAX+)";
     }
 
+    // Improved speed: Mostly planet one, some planet two resources. Maybe some credits.
+    // Improved capacity: Mostly planet two, some planet one resources. Maybe some credits.
+    // This appears when:
+    // 1. Unlocked mining in general
+    // Speed upgrades: +2, +2, +2. Change the colors of the ship. First change the head, then change the back.
+    // Capacity upgrades: +2, +2, +2. Change the colors of the ship on the inside
     const addSpeedButton = getOrCreateButton({
       id: shipInfoId + "-addSpeed",
-      textContent: ship.speed === 4 ? "Upgrade speed" : `Upgrade speed (${ship.upgradeSpeedCost} credits)`,
+      textContent: ship.speed >= 4 ? "Upgrade speed" : `Upgrade speed (${ship.upgradeSpeedCost} credits)`,
       onclick:  () => { addToUpgradeQueue({ fn: upgradeShipSpeed, params: [ship] }) },
-      disabled: state.credits < ship.upgradeSpeedCost || ship.speed === 4,
+      disabled: state.credits < ship.upgradeSpeedCost || ship.speed >= 4,
     });
 
     const addCapacityButton = getOrCreateButton({
       id: shipInfoId + "-addCapacity",
-      textContent: ship.capacity === 4 ? "Upgrade capacity" : `Upgrade capacity (${ship.upgradeCapacityCost} credits)`,
+      textContent: ship.capacity >= 4 ? "Upgrade capacity" : `Upgrade capacity (${ship.upgradeCapacityCost} credits)`,
       onclick: () => { addToUpgradeQueue({ fn: upgradeShipCapacity, params: [ship] }) },
-      disabled: state.credits < ship.upgradeCapacityCost || ship.capacity === 4,
+      disabled: state.credits < ship.upgradeCapacityCost || ship.capacity >= 4,
     });
 
     if (!shipInfoDiv.childElementCount) {
@@ -331,6 +358,14 @@ const display = () => {
       shipInfoDiv.appendChild(capacity);
       shipInfoDiv.appendChild(addSpeedButton);
       shipInfoDiv.appendChild(addCapacityButton);
+    }
+
+    const addSuperSpeedButton = getOrCreateAddSuperSpeedButton(ship, state);
+    const addSuperCapacityButton = getOrCreateAddSuperCapacityButton(ship, state);
+
+    if (isResearchMiningAvailable(state)) {
+      shipInfoDiv.appendChild(addSuperSpeedButton);
+      shipInfoDiv.appendChild(addSuperCapacityButton);
     }
 
     if (!document.getElementById(shipInfoDiv.id)) {
