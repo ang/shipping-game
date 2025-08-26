@@ -38,18 +38,20 @@ export const updateMining = async (state: State) => {
 }
 
 export const getOrCreateMiningResourcesDiv = (state: State, planet: Planet): HTMLElement => {
+  const miningResource = planet.miningResource;
   let miningResourcesDiv = getOrCreateElementById({
     id: `${planet.name}-mining-resources`,
-    innerText: `${planet.specialResourceName}: ${state.miningInfoByPlanetName[planet.name]?.resources || 0}`,
+    innerText: `${miningResource.name} (${miningResource.symbol}): ${state.miningInfoByPlanetName[planet.name]?.resources || 0}`,
   });
   miningResourcesDiv.style.display = isResearchUnlocked(state, planet) ? 'block' : 'none';
+  miningResourcesDiv.style.color = miningResource.color;
 
   return miningResourcesDiv;
 }
 
 const researchMining = async (planet: Planet, state: State) => {
-  if (canAddMiner(state, planet.specialResourceCost, state.miningInfoByPlanetName[planet.name]?.miners || [])) {
-    addMiner(planet, state, planet.specialResourceCost);
+  if (canAddMiner(state, planet.miningResource.researchCost, state.miningInfoByPlanetName[planet.name]?.miners || [])) {
+    addMiner(planet, state, planet.miningResource.researchCost);
   }
 }
 
@@ -63,11 +65,11 @@ export const getOrCreateResearchMiningButton = (state: State, planet: Planet): H
   // Only show when you have launched ships on all planets
   const researchMiningButton = getOrCreateButton({
     id: `${planet.name}-researchMining`,
-    textContent: `Research mining ${planet.specialResourceName} (${planet.specialResourceCost} credits)`,
+    textContent: `Research mining ${planet.miningResource.researchCost} (${planet.miningResource.researchCost} credits)`,
     onclick: () => {
       addToUpgradeQueue({fn: researchMining, params: [planet, state]});
     },
-    disabled: state.credits < planet.specialResourceCost,
+    disabled: state.credits < planet.miningResource.researchCost,
   });
 
   const planetSet: Set<string> = new Set();
@@ -166,35 +168,46 @@ export const getOrCreateRemoveMinerButton = (state: State, planet: Planet): HTML
 
 export const getOrCreateMiningDisplay = (state: State, planet: Planet): HTMLElement => {
   const miningDisplay = getOrCreateElementById({id: `${planet.name}-mining-display`});
+  const displayRows: HTMLElement[] = [];
 
   const miners = state.miningInfoByPlanetName[planet.name].miners;
   if (miners) {
-    let miningDisplayInnerText = "";
+    const symbolHtml = getSymbolHtml(planet);
     for (let row = 0; row < MINING_DEPTH; row++) {
+      const miningDisplayRow = getOrCreateElementById({id: `${planet.name}-mining-display-${row}`});
+      let miningDisplayInnerHTML = "<div>";
       for (let col = 0; col < MINING_WIDTH; col++) {
         const currMiner = miners[col];
         if (currMiner && currMiner.pos === row) {
           if (currMiner.direction) {
-            miningDisplayInnerText += "v";
+            miningDisplayInnerHTML += "v";
           } else {
-            miningDisplayInnerText += "^";
+            miningDisplayInnerHTML += "^";
           }
         } else if (currMiner && row < currMiner.pos) {
-          miningDisplayInnerText += "|";
+          miningDisplayInnerHTML += "|";
         } else if (row === MINING_DEPTH - 1) {
-          miningDisplayInnerText += "*";
+          miningDisplayInnerHTML += symbolHtml;
         } else if (currMiner && row === currMiner.pos + 1 && !currMiner.direction) {
-          miningDisplayInnerText += "*";
+          miningDisplayInnerHTML += symbolHtml;
         } else {
-          miningDisplayInnerText += "~";
+          miningDisplayInnerHTML += "~";
         }
       }
-
-      miningDisplayInnerText += "\n";
+      miningDisplayInnerHTML += "</div>";
+      miningDisplayRow.innerHTML = miningDisplayInnerHTML;
+      displayRows.push(miningDisplayRow);
     }
 
-    miningDisplay.innerText = miningDisplayInnerText;
+    if (!miningDisplay.childElementCount) {
+      displayRows.forEach((row) => miningDisplay.appendChild(row));
+    }
   }
 
   return miningDisplay;
+}
+
+export const getSymbolHtml = (planet: Planet, showColor: boolean = true): string => {
+  const color = showColor ? planet.miningResource.color : "";
+  return `<span style="color: ${color}">${planet.miningResource.symbol}</span>`;
 }

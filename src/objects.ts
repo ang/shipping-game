@@ -4,10 +4,14 @@ import { type Planet } from "./types.ts";
 export const planetA: Planet = {
   name: "A",
   pos: 0,
-  goods: 1,
+  goods: 0,
   launchCost: 0,
-  specialResourceName: "n/a",
-  specialResourceCost: 0,
+  miningResource: {
+    name: "n/a",
+    researchCost: 0,
+    symbol: "",
+    color: "",
+  }
 };
 
 export const planetB: Planet = {
@@ -15,8 +19,12 @@ export const planetB: Planet = {
   pos: 8,
   goods: 1,
   launchCost: 9,
-  specialResourceName: "Blue Squares",
-  specialResourceCost: 1000,
+  miningResource: {
+    name: "Blue Squares",
+    researchCost: 1000,
+    symbol: "◼",
+    color: "blue",
+  },
   display: `
          ,MMM8&&&.
     _...MMMMM88&&&&..._
@@ -33,8 +41,12 @@ export const planetC: Planet = {
   pos: 15,
   goods: 2,
   launchCost: 15,
-  specialResourceName: "Yellow Triangles",
-  specialResourceCost: 1000,
+  miningResource: {
+    name: "Green Triangles",
+    researchCost: 1000,
+    symbol: "▲",
+    color: "green",
+  },
   display: `
  ~+       *       +
     '                  |
@@ -53,8 +65,12 @@ export const planetD: Planet = {
   pos: 30,
   goods: 5,
   launchCost: 30,
-  specialResourceName: "Green Circles",
-  specialResourceCost: 4000,
+  miningResource: {
+    name: "Red Diamonds",
+    researchCost: 1000,
+    symbol: "◆",
+    color: "red",
+  },
   display: `
      .        ___---___
            .--\\        --.     .   .

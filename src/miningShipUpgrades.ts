@@ -3,6 +3,7 @@ import { type State, type Ship } from "./types.ts";
 import { getOrCreateButton } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 import { planetB, planetC, planetD } from "./objects.ts";
+import { getSymbolHtml } from "./mining.ts";
 
 export const MAX_SPEED_FROM_MINING_RESOURCES = 10;
 export const MAX_CAPACITY_FROM_MINING_RESOURCES = 10;
@@ -38,7 +39,6 @@ const isEnoughCreditsForUpgrade = (upgradeCosts: UpgradeCosts, state: State): bo
     dResources >= upgradeCosts.dResourcesCost
 }
 
-// TODO come up with a cool name for super speed
 export const getOrCreateAddSuperSpeedButton = (ship: Ship, state: State) => {
   const shipInfoId = "shipInfo-" + ship.name.split(" ").join("-");
 
@@ -47,15 +47,18 @@ export const getOrCreateAddSuperSpeedButton = (ship: Ship, state: State) => {
 
   const missingResources = !isEnoughCreditsForUpgrade(upgradeCosts, state);
 
+  const disabled = missingResources || ship.speed === MAX_SPEED_FROM_MINING_RESOURCES || ship.speed < 4;
   const button = getOrCreateButton({
       id: shipInfoId + "-addSuperSpeed",
-      textContent: ship.speed === MAX_SPEED_FROM_MINING_RESOURCES ? "Upgrade super speed" : `Upgrade super speed (${creditsCost} credits, ${bResourcesCost} ${planetB.specialResourceName}, ${cResourcesCost} ${planetC.specialResourceName})`,
       onclick:  () => { addToUpgradeQueue({ fn: upgradeShipSpeed, params: [ship, state] }) },
-      disabled: missingResources || ship.speed === MAX_SPEED_FROM_MINING_RESOURCES || ship.speed < 4,
+      disabled,
   });
 
-  button.style.maxWidth = "250px";
-  button.style.textAlign = "left";
+  if (ship.speed === MAX_SPEED_FROM_MINING_RESOURCES) {
+    button.textContent = "Upgrade speed+";
+  } else {
+    button.innerHTML = `Upgrade speed+ (${creditsCost} credits, ${bResourcesCost} ${getSymbolHtml(planetB, !disabled)}, ${cResourcesCost} ${getSymbolHtml(planetC, !disabled)})`;
+  }
 
   return button;
 }
@@ -85,7 +88,6 @@ const getSuperCapacityCosts = (ship: Ship): UpgradeCosts => {
   return { creditsCost, bResourcesCost, cResourcesCost, dResourcesCost }
 }
 
-// TODO come up with a cool name for super capacity
 export const getOrCreateAddSuperCapacityButton = (ship: Ship, state: State) => {
   const shipInfoId = "shipInfo-" + ship.name.split(" ").join("-");
 
@@ -94,16 +96,19 @@ export const getOrCreateAddSuperCapacityButton = (ship: Ship, state: State) => {
 
   const missingResources = !isEnoughCreditsForUpgrade(upgradeCosts, state);
 
+  const disabled = missingResources || ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES || ship.capacity < 4;
+
   const button = getOrCreateButton({
       id: shipInfoId + "-addSuperCapacity",
-      textContent: ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES ? "Upgrade super capacity" : `Upgrade super capacity (${creditsCost} credits, ${bResourcesCost} ${planetB.specialResourceName}, ${cResourcesCost} ${planetC.specialResourceName})`,
       onclick:  () => { addToUpgradeQueue({ fn: upgradeShipCapacity, params: [ship, state] }) },
-      disabled: missingResources || ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES || ship.capacity < 4,
+      disabled,
   });
 
-  button.style.maxWidth = "250px";
-  button.style.textAlign = "left";
-
+  if (ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES) {
+    button.textContent = "Upgrade capacity+";
+  } else {
+    button.innerHTML = `Upgrade capacity+ (${creditsCost} credits, ${bResourcesCost} ${getSymbolHtml(planetB, !disabled)}, ${cResourcesCost} ${getSymbolHtml(planetC, !disabled)})`;
+  }
   return button;
 }
 

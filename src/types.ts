@@ -1,11 +1,17 @@
+type MiningResource = {
+  name: string;
+  researchCost: number;
+  symbol: string;
+  color: string;
+}
+
 export type Planet = {
   name: string;
   pos: number;
   goods: number;
   display?: string;
   launchCost: number;
-  specialResourceName: string;
-  specialResourceCost: number;
+  miningResource: MiningResource;
 }
 
 
