@@ -3,6 +3,7 @@ type MiningResource = {
   researchCost: number;
   symbol: string;
   color: string;
+  amount: number;
 }
 
 export type Planet = {
@@ -11,7 +12,8 @@ export type Planet = {
   goods: number;
   display?: string;
   launchCost: number;
-  miningResource: MiningResource;
+  // TODO combine
+  miningInfo: MiningInfo;
   spacePort?: SpacePort;
 }
 
@@ -29,19 +31,14 @@ export type Ship = {
 }
 
 export type Miner = {
-  planet: Planet;
   pos: number;
   direction: boolean; // True means going up in pos
 }
 
 type MiningInfo = {
-  planetName: string;
-  miners: Miner[]
-  resources: number;
-}
-
-type MiningInfoByPlanetName = {
-  [key: string]: MiningInfo;
+  miningUnlocked: boolean;
+  miners: Miner[];
+  resources: MiningResource;
 }
 
 type SpacePort = {
@@ -52,8 +49,6 @@ export type State = {
   credits: number;
   gameTick: number;
   ships: Ship[];
-  miningInfoByPlanetName: MiningInfoByPlanetName;
-  // TODO need to do a refactor here
   startPlanet: Planet;
   planets: Planet[];
 }

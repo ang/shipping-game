@@ -7,15 +7,8 @@ import {
   getOrCreateMiningResourcesDiv,
   getOrCreateRemoveMinerButton,
   getOrCreateResearchMiningButton,
-  isResearchMiningAvailable,
   updateMining,
 } from "./mining.ts";
-import {
-  getOrCreateAddSuperSpeedButton,
-  getOrCreateAddSuperCapacityButton,
-  MAX_CAPACITY_FROM_MINING_RESOURCES,
-  MAX_SPEED_FROM_MINING_RESOURCES,
-} from "./miningShipUpgrades.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getOrCreateShipDisplay } from "./ship.ts";
 import {getOrCreateBuildSpacePortButton, getOrCreateSpacePortDisplay} from "./spacePort.ts";
@@ -176,7 +169,7 @@ const updates = async () => {
       ship.pos == ship.destination1.pos
       if (state.gameTick !== 0) {
         const destination2 = ship.destination2;
-        const miners = state.miningInfoByPlanetName[destination2.name]?.miners || [];
+        const miners = destination2.miningInfo.miners;
         const addingCredit = ship.capacity * getEffectiveGoodsMultipler(miners, destination2);
         state.credits = roundValue(state.credits + addingCredit);
       }
@@ -212,9 +205,9 @@ const display = () => {
     innerText: "Credits: " + state.credits.toString(),
   });
 
-  const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[0]);
-  const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[1]);
-  const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[2]);
+  const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[0]);
+  const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[1]);
+  const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[2]);
 
   if (!gameInfoDiv.childElementCount) {
     gameInfoDiv.appendChild(creditsDiv);
@@ -244,14 +237,10 @@ const display = () => {
     const speed = getOrCreateElementById({id: shipInfoId + "-speed", innerText: "Speed: " + ship.speed});
     if (ship.speed === MAX_SPEED) {
       speed.textContent += " (MAX)";
-    } else if (ship.speed === MAX_SPEED_FROM_MINING_RESOURCES) {
-      speed.textContent += " (MAX+)";
     }
     const capacity = getOrCreateElementById({id: shipInfoId + "-capacity", innerText: "Capacity: " + ship.capacity});
     if (ship.capacity === MAX_CAPACITY) {
       capacity.textContent += " (MAX)";
-    } else if (ship.capacity === MAX_CAPACITY_FROM_MINING_RESOURCES) {
-      capacity.textContent += " (MAX+)";
     }
 
     // Improved speed: Mostly planet one, some planet two resources. Maybe some credits.
@@ -283,14 +272,6 @@ const display = () => {
       shipInfoDiv.appendChild(addCapacityButton);
     }
 
-    const addSuperSpeedButton = getOrCreateAddSuperSpeedButton(ship, state);
-    const addSuperCapacityButton = getOrCreateAddSuperCapacityButton(ship, state);
-
-    if (isResearchMiningAvailable(state)) {
-      shipInfoDiv.appendChild(addSuperSpeedButton);
-      shipInfoDiv.appendChild(addSuperCapacityButton);
-    }
-
     if (!document.getElementById(shipInfoDiv.id)) {
       shipsInfoDiv.appendChild(shipInfoDiv);
     }
@@ -313,7 +294,7 @@ const display = () => {
 
     const distanceText = hasShipsInPlanet ? planet.pos : "???"
     const distance = getOrCreateElementById({id: planetId + "-distance", innerText: "Distance: " + distanceText});
-    const miners = state.miningInfoByPlanetName[planet.name]?.miners || [];
+    const miners = planet.miningInfo.miners;
     const goodsText = hasShipsInPlanet ? getEffectiveGoodsMultipler(miners, planet) : "???"
     const goodsMultiplier = getOrCreateElementById({id: planetId + "-goods", innerText: "Goods multiplier: " + goodsText});
 
@@ -344,7 +325,7 @@ const display = () => {
     planetInfo.appendChild(addMinerButton);
     planetInfo.appendChild(removeMinerButton);
     if (miners.length !== 0) {
-      const miningDisplay = getOrCreateMiningDisplay(state, planet);
+      const miningDisplay = getOrCreateMiningDisplay(planet);
       planetDisplay.insertAdjacentElement('afterend', miningDisplay);
       goodsMultiplier.insertAdjacentElement('afterend', pollutionPenaltyDiv);
     }

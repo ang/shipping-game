@@ -6,11 +6,16 @@ export const planetA: Planet = {
   pos: 0,
   goods: 0,
   launchCost: 0,
-  miningResource: {
-    name: "n/a",
-    researchCost: 0,
-    symbol: "",
-    color: "",
+  miningInfo: {
+    miningUnlocked: false,
+    miners: [],
+    resources: {
+      name: "n/a",
+      researchCost: 0,
+      symbol: "",
+      color: "",
+      amount: 0,
+    }
   }
 };
 
@@ -19,11 +24,16 @@ export const planetB: Planet = {
   pos: 8,
   goods: 1,
   launchCost: 9,
-  miningResource: {
-    name: "Blue Squares",
-    researchCost: 1000,
-    symbol: "◼",
-    color: "blue",
+  miningInfo: {
+    miningUnlocked: false,
+    miners: [],
+    resources: {
+      name: "Blue Squares",
+      researchCost: 1000,
+      symbol: "◼",
+      color: "blue",
+      amount: 0,
+    },
   },
   display: `
          ,MMM8&&&.
@@ -41,11 +51,16 @@ export const planetC: Planet = {
   pos: 15,
   goods: 2,
   launchCost: 15,
-  miningResource: {
-    name: "Green Triangles",
-    researchCost: 1000,
-    symbol: "▲",
-    color: "green",
+  miningInfo: {
+    miningUnlocked: false,
+    miners: [],
+    resources: {
+      name: "Green Triangles",
+      researchCost: 1000,
+      symbol: "▲",
+      color: "green",
+      amount: 0,
+    },
   },
   display: `
  ~+       *       +
@@ -65,11 +80,16 @@ export const planetD: Planet = {
   pos: 30,
   goods: 5,
   launchCost: 30,
-  miningResource: {
-    name: "Red Diamonds",
-    researchCost: 1000,
-    symbol: "◆",
-    color: "red",
+  miningInfo: {
+    miningUnlocked: false,
+    miners: [],
+    resources: {
+      name: "Red Diamonds",
+      researchCost: 1000,
+      symbol: "◆",
+      color: "red",
+      amount: 0,
+    },
   },
   display: `
      .        ___---___

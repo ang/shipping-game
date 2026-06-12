@@ -3,7 +3,7 @@ import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 
 export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): HTMLButtonElement => {
-  const cost = planet.miningResource.researchCost * 3;
+  const cost = planet.miningInfo.resources.researchCost * 3;
   const buildSpacePortButton = getOrCreateButton({
     id: `${planet.name}-buildSpacePort`,
     textContent: `Build space port (${cost} credits)`,
@@ -13,8 +13,7 @@ export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): H
     disabled: state.credits < cost,
   });
 
-  const hasMining = planet.name in state.miningInfoByPlanetName && state.miningInfoByPlanetName[planet.name].miners.length;
-  const displayButton = hasMining && !planet.spacePort;
+  const displayButton = planet.miningInfo.miningUnlocked && !planet.spacePort;
 
   buildSpacePortButton.style.display = displayButton ? 'block' : 'none';
 

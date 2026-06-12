@@ -21,7 +21,6 @@ export const getDefaultState = (): State => {
     credits: 15000,
     gameTick: 0,
     ships: [ship1],
-    miningInfoByPlanetName: {},
     startPlanet: planetA,
     planets: [planetB, planetC, planetD],
   }
