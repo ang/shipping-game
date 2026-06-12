@@ -18,6 +18,7 @@ import {
   MAX_SPEED_FROM_MINING_RESOURCES,
 } from "./miningShipUpgrades.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
+import { getOrCreateShipDisplay } from "./ship.ts";
 
 const MAX_SPEED = 4;
 const MAX_CAPACITY = 4;
@@ -199,85 +200,9 @@ const display = () => {
   const shipsDiv = getOrCreateElementById({id: "ships"});
 
   state.ships.forEach((ship) => {
-    const parentId = "shipParent-" + ship.name.split(" ").join("-");
-    const parentDiv = getOrCreateElementById({id: parentId});
-    const shipName = getOrCreateElementById({id: parentId + "-shipName", innerText: ship.name + ": ", elementTypeArg: "span"});
-    const planet1 = getOrCreateElementById({id: parentId + "-planet1", innerText: ship.destination1.name, elementTypeArg: "span"});
-
-    let shipInnerText = ""
-    if (ship.pos > 0 && ship.pos < ship.destination2.pos) {
-      if (ship.direction) {
-        shipInnerText += ">"
-      } else {
-        shipInnerText += "<"
-      }
-
-      if (ship.capacity === 2) {
-        shipInnerText += "=";
-      } else if (ship.capacity === 3) {
-        shipInnerText += "==";
-      } else if (ship.capacity > 3) {
-        shipInnerText += "===";
-      }
-
-      if (ship.speed === 2) {
-        shipInnerText += "~"
-      } else if (ship.speed > 2) {
-        const speedDis = ship.direction ? "}" : "{";
-
-        if (ship.speed === 3) {
-          shipInnerText += speedDis;
-        } else if (ship.speed > 3) {
-          shipInnerText += speedDis + speedDis;
-        }
-      }
-
-      let shipLengthCut = 0; Math.min(ship.pos, shipInnerText.length);
-      if (ship.direction) {
-        shipLengthCut = Math.min(ship.pos, shipInnerText.length);
-      } else {
-        shipLengthCut = Math.min(ship.destination2.pos - ship.pos, shipInnerText.length);
-      }
-      shipInnerText = shipInnerText.substring(0, shipLengthCut);
-
-      if (ship.direction) {
-        shipInnerText = shipInnerText.split("").reverse().join("");
-      }
-    }
-    const shipDisplay = getOrCreateElementById({id: parentId + "-shipDisplay", innerText: shipInnerText, elementTypeArg: "span"});
-    const shipLength = shipInnerText.length;
-
-    let preDotsCount = 0;
-    let postDotsCount = 0;
-    if (ship.pos <= 0) {
-      preDotsCount = 0;
-      postDotsCount = ship.destination2.pos - 1 - Math.max(ship.pos, 0);
-    } else if (ship.pos < ship.destination2.pos && ship.direction) {
-      preDotsCount = Math.max(ship.pos - 1 - (shipLength - 1), 0);
-      postDotsCount = ship.destination2.pos - 1 - ship.pos;
-    } else if (ship.pos < ship.destination2.pos && !ship.direction) {
-      preDotsCount = ship.pos - 1;
-      postDotsCount = Math.max(ship.destination2.pos - 1 - ship.pos - (shipLength - 1), 0);
-    } else if (ship.pos >= ship.destination2.pos) {
-      preDotsCount = ship.destination2.pos - 1;
-      postDotsCount = 0;
-    }
-    const preShip = getOrCreateElementById({id: parentId + "-preShip", innerText: ".".repeat(preDotsCount), elementTypeArg: "span"});
-    const postShip = getOrCreateElementById({id: parentId + "-postShip", innerText: ".".repeat(postDotsCount), elementTypeArg: "span"});
-
-    const planet2 = getOrCreateElementById({id: parentId + "-planet2", innerText: ship.destination2.name, elementTypeArg: "span"});
-
-    if (!parentDiv.childElementCount) {
-      parentDiv.appendChild(shipName);
-      parentDiv.appendChild(planet1);
-      parentDiv.appendChild(preShip);
-      parentDiv.appendChild(shipDisplay);
-      parentDiv.appendChild(postShip);
-      parentDiv.appendChild(planet2);
-    }
-
-    if (!document.getElementById(parentDiv.id)) {
-      shipsDiv.appendChild(parentDiv);
+    const shipDiv = getOrCreateShipDisplay(ship, state);
+    if (!document.getElementById(shipDiv.id)) {
+      shipsDiv.appendChild(shipDiv);
     }
   });
 

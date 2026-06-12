@@ -66,12 +66,12 @@ export const getOrCreateAddSuperSpeedButton = (ship: Ship, state: State) => {
 const upgradeShipSpeed = async (ship: Ship, state: State) => {
 
   if (isEnoughCreditsForUpgrade(getSuperSpeedCosts(ship), state) && ship.speed < MAX_SPEED_FROM_MINING_RESOURCES) {
-    ship.speed += 2;
-
     const { creditsCost, bResourcesCost, cResourcesCost } = getSuperSpeedCosts(ship);
     state.credits -= creditsCost;
     state.miningInfoByPlanetName[planetB.name].resources -= bResourcesCost;
     state.miningInfoByPlanetName[planetC.name].resources -= cResourcesCost;
+
+    ship.speed += 2;
   }
 }
 
@@ -115,11 +115,11 @@ export const getOrCreateAddSuperCapacityButton = (ship: Ship, state: State) => {
 const upgradeShipCapacity = async (ship: Ship, state: State) => {
 
   if (isEnoughCreditsForUpgrade(getSuperCapacityCosts(ship), state) && ship.capacity < MAX_CAPACITY_FROM_MINING_RESOURCES) {
-    ship.capacity += 2;
-
     const { creditsCost, bResourcesCost, cResourcesCost } = getSuperCapacityCosts(ship);
     state.credits -= creditsCost;
     state.miningInfoByPlanetName[planetB.name].resources -= bResourcesCost;
     state.miningInfoByPlanetName[planetC.name].resources -= cResourcesCost;
+
+    ship.capacity += 2;
   }
 }
