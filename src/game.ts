@@ -1,5 +1,4 @@
 import { type Planet, type Ship, type State, type Miner } from "./types.ts";
-import { planetA, planetB, planetC, planetD } from "./objects.ts";
 import { loadState, getDefaultState, saveState, resetState } from "./state.ts";
 import { getOrCreateElementById, getOrCreateButton, roundValue } from "./common.ts";
 import {
@@ -19,13 +18,12 @@ import {
 } from "./miningShipUpgrades.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getOrCreateShipDisplay } from "./ship.ts";
+import {getOrCreateBuildSpacePortButton, getOrCreateSpacePortDisplay} from "./spacePort.ts";
 
 const MAX_SPEED = 4;
 const MAX_CAPACITY = 4;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const destinationPlanets = [planetB, planetC, planetD];
 
 const upgradeSpeedCost = 5;
 const upgradeCapacityCost = 8;
@@ -69,7 +67,7 @@ const addShipToPlanet = async (planet: Planet) => {
   if (state.credits >= planet.launchCost) {
     const ship: Ship = {
       name: "Ship " + (state.ships.length + 1),
-      destination1: planetA,
+      destination1: state.startPlanet,
       destination2: planet,
       speed: 1,
       capacity: 1,
@@ -214,9 +212,9 @@ const display = () => {
     innerText: "Credits: " + state.credits.toString(),
   });
 
-  const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state, planetB);
-  const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state, planetC);
-  const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state, planetD);
+  const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[0]);
+  const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[1]);
+  const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state, state.planets[2]);
 
   if (!gameInfoDiv.childElementCount) {
     gameInfoDiv.appendChild(creditsDiv);
@@ -300,7 +298,7 @@ const display = () => {
 
   // Add ship to existing planet
   const planetsInfo = getOrCreateElementById({id: "planetsInfo"});
-  destinationPlanets.forEach((planet) => {
+  state.planets.forEach((planet) => {
     const planetId = "planetInfo-" + planet.name.split(" ").join("-");
     const planetInfo = getOrCreateElementById({id: planetId});
     planetInfo.className = "planetInfo";
@@ -350,6 +348,12 @@ const display = () => {
       planetDisplay.insertAdjacentElement('afterend', miningDisplay);
       goodsMultiplier.insertAdjacentElement('afterend', pollutionPenaltyDiv);
     }
+
+    // Space port
+    const buildSpacePortButton = getOrCreateBuildSpacePortButton(state, planet);
+    const spacePortDisplay = getOrCreateSpacePortDisplay(state, planet);
+    planetInfo.appendChild(buildSpacePortButton);
+    planetInfo.appendChild(spacePortDisplay);
 
     if (!document.getElementById(planetInfo.id)) {
       planetsInfo.append(planetInfo);

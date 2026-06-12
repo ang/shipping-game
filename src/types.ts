@@ -12,6 +12,7 @@ export type Planet = {
   display?: string;
   launchCost: number;
   miningResource: MiningResource;
+  spacePort?: SpacePort;
 }
 
 
@@ -43,9 +44,16 @@ type MiningInfoByPlanetName = {
   [key: string]: MiningInfo;
 }
 
+type SpacePort = {
+  foo: boolean;
+}
+
 export type State = {
   credits: number;
   gameTick: number;
   ships: Ship[];
   miningInfoByPlanetName: MiningInfoByPlanetName;
+  // TODO need to do a refactor here
+  startPlanet: Planet;
+  planets: Planet[];
 }

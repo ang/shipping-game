@@ -1,5 +1,5 @@
 import { type State, type Ship } from "./types.ts";
-import { planetA, planetB } from "./objects.ts";
+import { planetA, planetB, planetC, planetD } from "./objects.ts";
 
 const STATE_KEY = "state";
 
@@ -18,10 +18,12 @@ export const getDefaultState = (): State => {
 
   const defaultState: State = {
     // credits: 5,
-    credits: 5000,
+    credits: 15000,
     gameTick: 0,
     ships: [ship1],
     miningInfoByPlanetName: {},
+    startPlanet: planetA,
+    planets: [planetB, planetC, planetD],
   }
 
   return defaultState;
