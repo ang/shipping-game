@@ -96,17 +96,13 @@ const canAddMiner = (state: State, cost: number, miners: Miner[]): boolean => {
 }
 
 const addMiner = async (planet: Planet, state: State, cost: number) => {
-  console.log("1");
   if (!isResearchUnlocked(planet)) {
-    console.log("2");
     return;
   }
 
   const miners = planet.miningInfo.miners;
 
-  console.log("3");
   if (canAddMiner(state, cost, miners)) {
-    console.log("4");
     miners.push({pos: 0, direction: true});
     state.credits -= cost;
   }

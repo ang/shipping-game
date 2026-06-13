@@ -11,7 +11,12 @@ import {
 } from "./mining.ts";
 import { upgradeUpdates, addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getOrCreateShipDisplay } from "./ship.ts";
-import {getOrCreateBuildSpacePortButton, getOrCreateSpacePortDisplay} from "./spacePort.ts";
+import {
+  getOrCreateBuildSpacePortButton,
+  getOrCreateSpacePortDisplay,
+  getOrCreateResearchAutoUpgradeSpeedButton,
+  getOrCreateResearchAutoUpgradeCapacityButton,
+} from "./spacePort.ts";
 
 const MAX_SPEED = 4;
 const MAX_CAPACITY = 4;
@@ -87,7 +92,6 @@ const debugPauseUntilClick = () => {
       elementTypeArg: "button",
     });
     button.addEventListener('click', () => {
-      console.log("click");
       resolve(undefined);
     });
   });
@@ -333,8 +337,13 @@ const display = () => {
     // Space port
     const buildSpacePortButton = getOrCreateBuildSpacePortButton(state, planet);
     const spacePortDisplay = getOrCreateSpacePortDisplay(state, planet);
+    const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
+    const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
+
     planetInfo.appendChild(buildSpacePortButton);
     planetInfo.appendChild(spacePortDisplay);
+    planetInfo.appendChild(researchAutoUpgradeSpeedButton);
+    planetInfo.appendChild(researchAutoUpgradeCapacityButton);
 
     if (!document.getElementById(planetInfo.id)) {
       planetsInfo.append(planetInfo);

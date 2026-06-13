@@ -3,6 +3,7 @@ type MiningResource = {
   researchCost: number;
   symbol: string;
   color: string;
+  // TODO: Refactor. Feels weird that the amount is tied directly to the resource? Feels like it should be top level in the state.
   amount: number;
 }
 
@@ -12,22 +13,21 @@ export type Planet = {
   goods: number;
   display?: string;
   launchCost: number;
-  // TODO combine
   miningInfo: MiningInfo;
   spacePort?: SpacePort;
 }
 
 
 export type Ship = {
-   destination1: Planet;
-   destination2: Planet;
-   name: string;
-   pos: number;
-   direction: boolean; // True means going to destination 2
-   speed: number;
-   capacity: number;
-   upgradeSpeedCost: number;
-   upgradeCapacityCost: number;
+  destination1: Planet;
+  destination2: Planet;
+  name: string;
+  pos: number;
+  direction: boolean; // True means going to destination 2
+  speed: number;
+  capacity: number;
+  upgradeSpeedCost: number;
+  upgradeCapacityCost: number;
 }
 
 export type Miner = {
@@ -42,7 +42,9 @@ type MiningInfo = {
 }
 
 type SpacePort = {
-  foo: boolean;
+  isAutoSpeedUpgradeUnlocked?: boolean;
+  isAutoCapacityUpgradeUnlocked?: boolean;
+  isAutoShipBuildingUpgradeUnlocked?: boolean;
 }
 
 export type State = {

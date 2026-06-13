@@ -8,9 +8,11 @@ type FunctionWithParams<T extends any[]> = {
     params: T;
 };
 
-const upgradeQueue: FunctionWithParams<unknown[]>[] = [];
+const upgradeQueue: FunctionWithParams<any[]>[] = [];
 
-export const addToUpgradeQueue = (functionWithParams: FunctionWithParams<any>) => {
+export const addToUpgradeQueue = <T extends any[]>(
+  functionWithParams: FunctionWithParams<T>
+) => {
   upgradeQueue.push(functionWithParams);
 }
 

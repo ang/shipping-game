@@ -73,13 +73,10 @@ export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement =>
         const color2 = "#1E90FF";
         const modValue = 2;
         if (!shipTail.style.color || shipTail.style.color === "blue") {
-          console.log({"a": 1, bool: !shipTail.style.color, bool2: shipTail.style.color === "blue"});
           shipTail.style.color = color1;
         } else if (shipTail.style.color === color1 && state.gameTick % modValue === 0) {
-          console.log({"a": 2});
           shipTail.style.color = color2;
         } else if (shipTail.style.color === color2 && state.gameTick % modValue === 0) {
-          console.log({"a": 3});
           shipTail.style.color = color1;
         }
       }

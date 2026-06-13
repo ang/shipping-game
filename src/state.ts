@@ -18,7 +18,7 @@ export const getDefaultState = (): State => {
 
   const defaultState: State = {
     // credits: 5,
-    credits: 15000,
+    credits: 150000,
     gameTick: 0,
     ships: [ship1],
     startPlanet: planetA,
