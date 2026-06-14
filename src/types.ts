@@ -43,6 +43,8 @@ type MiningInfo = {
 
 type SpacePort = {
   isAutoSpeedUpgradeUnlocked?: boolean;
+  speedUpgradeCostCredits: number;
+  speedUpgradeCostMiningResource: number;
   isAutoCapacityUpgradeUnlocked?: boolean;
   isAutoShipBuildingUpgradeUnlocked?: boolean;
 }

@@ -2,10 +2,18 @@ import { type State, type Planet } from "./types.ts";
 import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getSymbolHtml } from "./mining.ts";
+import { UPGRADE_SPEED_COST_START } from "./constants.ts";
 
-const buildSpacePortMiningCost = 50;
-const researchAutoSpeedMiningCost = buildSpacePortMiningCost * 2;
-const researchAutoCapacityMiningCost = 5;
+// TODO change back to a real value
+const buildSpacePortMiningCost = 1;
+// const buildSpacePortMiningCost = 50;
+// TODO change back to a real value
+// const researchAutoSpeedMiningCost = buildSpacePortMiningCost * 2;
+const researchAutoSpeedMiningCost = 5;
+const researchAutoCapacityMiningCost = buildSpacePortMiningCost * 2;
+
+const autoUpgradeSpeedCreditCost = UPGRADE_SPEED_COST_START - 2;
+const autoUpgradeSpeedMiningCost = autoUpgradeSpeedCreditCost;
 
 export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): HTMLButtonElement => {
   const miningInfo = planet.miningInfo;
@@ -55,7 +63,10 @@ const buildSpacePort = async (state: State, creditCost: number, miningResourceCo
 
   state.credits -= creditCost;
   planet.miningInfo.resources.amount -= miningResourceCost;
-  planet.spacePort = {};
+  planet.spacePort = {
+    speedUpgradeCostCredits: autoUpgradeSpeedCreditCost,
+    speedUpgradeCostMiningResource: autoUpgradeSpeedMiningCost,
+  };
 }
 
 export const getOrCreateResearchAutoUpgradeSpeedButton = (state: State, planet: Planet): HTMLButtonElement => {

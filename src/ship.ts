@@ -1,5 +1,6 @@
 import { type Ship, type State } from "./types.ts";
 import { getOrCreateElementById } from "./common.ts";
+import { SHIP_SPEED_MAX } from "./constants.ts";
 
 export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement => {
     const parentId = "shipParent-" + ship.name.split(" ").join("-");
@@ -41,7 +42,7 @@ export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement =>
         if (ship.speed === 3) {
           shipInnerText += speedDis;
           shipTail.innerText = speedDis
-        } else if (ship.speed > 3) {
+        } else if (ship.speed === SHIP_SPEED_MAX) {
           shipInnerText += speedDis + speedDis;
           shipTail.innerText = speedDis + speedDis;
         }
@@ -62,6 +63,7 @@ export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement =>
       shipMiddle.innerText = shipMiddle.innerText.substring(0, shipLengthCut - shipHead.innerText.length)
       shipTail.innerText = shipTail.innerText.substring(0, shipLengthCut - shipHead.innerText.length - shipMiddle.innerText.length)
 
+      // TODO remove this, I don't have super speed anymore
       if (ship.speed >= 6) {
         shipHead.style.color = "blue";
       }

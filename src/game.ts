@@ -17,8 +17,9 @@ import {
   getOrCreateResearchAutoUpgradeSpeedButton,
   getOrCreateResearchAutoUpgradeCapacityButton,
 } from "./spacePort.ts";
+import { SHIP_SPEED_MAX } from "./constants.ts";
+import { autoUpgrade } from "./autoUpgrade.ts";
 
-const MAX_SPEED = 4;
 const MAX_CAPACITY = 4;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -31,7 +32,7 @@ const saveStateTimeMs = 1000;
 let state: State = getDefaultState();
 
 const upgradeShipSpeed = async (ship: Ship) => {
-  if (state.credits >= ship.upgradeSpeedCost && ship.speed < MAX_SPEED) {
+  if (state.credits >= ship.upgradeSpeedCost && ship.speed < SHIP_SPEED_MAX) {
     ship.speed += 1;
     state.credits -= ship.upgradeSpeedCost;
 
@@ -187,6 +188,8 @@ const updates = async () => {
 
   updateMining(state);
 
+  autoUpgrade(state);
+
   state.gameTick += 1;
 }
 
@@ -239,7 +242,7 @@ const display = () => {
     const shipName = getOrCreateElementById({id: shipInfoId + "-" + ship.name, innerText: ship.name});
     const destination = getOrCreateElementById({id: shipInfoId + "-destination", innerText: "Destination: Planet " + ship.destination2.name});
     const speed = getOrCreateElementById({id: shipInfoId + "-speed", innerText: "Speed: " + ship.speed});
-    if (ship.speed === MAX_SPEED) {
+    if (ship.speed === SHIP_SPEED_MAX) {
       speed.textContent += " (MAX)";
     }
     const capacity = getOrCreateElementById({id: shipInfoId + "-capacity", innerText: "Capacity: " + ship.capacity});
