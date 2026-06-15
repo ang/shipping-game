@@ -1,9 +1,8 @@
-type MiningResource = {
+export type MiningResource = {
   name: string;
   researchCost: number;
   symbol: string;
   color: string;
-  // TODO: Refactor. Feels weird that the amount is tied directly to the resource? Feels like it should be top level in the state.
   amount: number;
 }
 
@@ -55,4 +54,7 @@ export type State = {
   ships: Ship[];
   startPlanet: Planet;
   planets: Planet[];
+  blueSquares: MiningResource
+  greenTriangles: MiningResource
+  redDiamonds: MiningResource
 }

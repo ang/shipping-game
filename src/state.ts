@@ -1,5 +1,13 @@
 import { type State, type Ship } from "./types.ts";
-import { planetA, planetB, planetC, planetD } from "./objects.ts";
+import {
+  planetA as planetAObj,
+  planetB as planetBObj,
+  planetC as planetCObj,
+  planetD as planetDObj,
+  blueSquares as blueSquaresObj,
+  greenTriangles as greenTrianglesObj,
+  redDiamonds as redDiamondsObj,
+} from "./objects.ts";
 import {
   UPGRADE_CAPACITY_COST_START,
   UPGRADE_SPEED_COST_START
@@ -8,15 +16,23 @@ import {
 const STATE_KEY = "state";
 
 export const getDefaultState = (): State => {
-  const newPlanetA = structuredClone(planetA);
-  const newPlanetB = structuredClone(planetB);
-  const newPlanetC = structuredClone(planetC);
-  const newPlanetD = structuredClone(planetD);
+  const planetA = structuredClone(planetAObj);
+  const planetB = structuredClone(planetBObj);
+  const planetC = structuredClone(planetCObj);
+  const planetD = structuredClone(planetDObj);
+
+  const blueSquares = structuredClone(blueSquaresObj);
+  const greenTriangles = structuredClone(greenTrianglesObj);
+  const redDiamonds = structuredClone(redDiamondsObj);
+
+  planetB.miningInfo.resources = blueSquares;
+  planetC.miningInfo.resources = greenTriangles;
+  planetD.miningInfo.resources = redDiamonds;
 
   const ship1: Ship = {
     name: "Ship 1",
-    destination1: newPlanetA,
-    destination2: newPlanetB,
+    destination1: planetA,
+    destination2: planetB,
     pos: 0,
     direction: true,
     speed: 1,
@@ -31,8 +47,11 @@ export const getDefaultState = (): State => {
     credits: 150000,
     gameTick: 0,
     ships: [ship1],
-    startPlanet: structuredClone(planetA),
-    planets: [newPlanetB, newPlanetC, newPlanetD],
+    startPlanet: planetA,
+    planets: [planetB, planetC, planetD],
+    blueSquares,
+    greenTriangles,
+    redDiamonds,
   }
 
   return defaultState;

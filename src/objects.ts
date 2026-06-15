@@ -1,4 +1,4 @@
-import { type Planet } from "./types.ts";
+import { type Planet, type MiningResource } from "./types.ts";
 
 // Ascii art from https://www.asciiart.eu/space/planets
 export const planetA: Planet = {
@@ -109,3 +109,27 @@ o    |      \\  .~\\\\___,--'     |
       .          ---         .    -JT
 
 `};
+
+export const blueSquares: MiningResource = {
+  name: "Blue Squares",
+  researchCost: 1000,
+  symbol: "◼",
+  color: "blue",
+  amount: 0,
+};
+
+export const greenTriangles: MiningResource = {
+  name: "Green Triangles",
+  researchCost: 1000,
+  symbol: "▲",
+  color: "green",
+  amount: 0,
+};
+
+export const redDiamonds: MiningResource = {
+  name: "Red Diamonds",
+  researchCost: 1000,
+  symbol: "◆",
+  color: "red",
+  amount: 0,
+};

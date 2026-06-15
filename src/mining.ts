@@ -26,12 +26,6 @@ export const updateMining = async (state: State) => {
       }
 
       if (miner.pos === 0) {
-        // TODO is this needed?
-        // if (!state.miningInfoByPlanetName[planetName]) {
-        //   state.miningInfoByPlanetName[planetName] = {
-        //     planetName: planetName, miners: [], resources: 0
-        //   }
-        // }
         planet.miningInfo.resources.amount++;
       }
     }
