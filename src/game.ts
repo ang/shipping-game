@@ -250,12 +250,6 @@ const display = () => {
       capacity.textContent += " (MAX)";
     }
 
-    // Improved speed: Mostly planet one, some planet two resources. Maybe some credits.
-    // Improved capacity: Mostly planet two, some planet one resources. Maybe some credits.
-    // This appears when:
-    // 1. Unlocked mining in general
-    // Speed upgrades: +2, +2, +2. Change the colors of the ship. First change the head, then change the back.
-    // Capacity upgrades: +2, +2, +2. Change the colors of the ship on the inside
     const addSpeedButton = getOrCreateButton({
       id: shipInfoId + "-addSpeed",
       textContent: ship.speed >= 4 ? "Upgrade speed" : `Upgrade speed (${ship.upgradeSpeedCost} credits)`,
@@ -324,29 +318,33 @@ const display = () => {
 
     // Mining
     const researchMiningButton = getOrCreateResearchMiningButton(state, planet);
-    const addMinerButton = getOrCreateAddMinerButton(state, planet);
-    const removeMinerButton = getOrCreateRemoveMinerButton(state, planet);
-    let pollutionPenalty = getPollutionPenalty(miners, planet);
-    const pollutionPenaltyDiv = getOrCreateElementById({id: planetId + "-pollutionPenalty", innerText: "Pollution penalty: " + pollutionPenalty});
+    const pollutionPenalty = getPollutionPenalty(miners, planet);
+    const pollutionPenaltyDiv = getOrCreateElementById({id: planetId + "-pollutionPenalty", innerText: "Mining pollution penalty: " + pollutionPenalty});
     planetInfo.appendChild(researchMiningButton);
-    planetInfo.appendChild(addMinerButton);
-    planetInfo.appendChild(removeMinerButton);
     if (miners.length !== 0) {
-      const miningDisplay = getOrCreateMiningDisplay(planet);
-      planetDisplay.insertAdjacentElement('afterend', miningDisplay);
       goodsMultiplier.insertAdjacentElement('afterend', pollutionPenaltyDiv);
     }
 
+    // TODO: Instead of three returns, just have a single function return one item
+    const addMinerButton = getOrCreateAddMinerButton(state, planet);
+    const removeMinerButton = getOrCreateRemoveMinerButton(state, planet);
+    const miningDisplay = getOrCreateMiningDisplay(planet);
+    planetInfo.appendChild(miningDisplay);
+    planetInfo.appendChild(addMinerButton);
+    planetInfo.appendChild(removeMinerButton);
+
     // Space port
     const buildSpacePortButton = getOrCreateBuildSpacePortButton(state, planet);
+    addShipButton.insertAdjacentElement('afterend', buildSpacePortButton);
+
+    // TODO instead of multiple returns, have a single function return one item
     const spacePortDisplay = getOrCreateSpacePortDisplay(state, planet);
     const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
     const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
 
-    planetInfo.appendChild(buildSpacePortButton);
-    planetInfo.appendChild(spacePortDisplay);
-    planetInfo.appendChild(researchAutoUpgradeSpeedButton);
-    planetInfo.appendChild(researchAutoUpgradeCapacityButton);
+    miningDisplay.insertAdjacentElement('beforebegin', spacePortDisplay);
+    spacePortDisplay.insertAdjacentElement('afterend', researchAutoUpgradeSpeedButton);
+    spacePortDisplay.insertAdjacentElement('afterend', researchAutoUpgradeCapacityButton);
 
     if (!document.getElementById(planetInfo.id)) {
       planetsInfo.append(planetInfo);

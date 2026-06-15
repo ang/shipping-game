@@ -198,6 +198,10 @@ export const getOrCreateMiningDisplay = (planet: Planet): HTMLElement => {
     }
   }
 
+  const isMiningVisible = miners.length !== 0;
+  miningDisplay.className = "miningDisplay";
+  miningDisplay.style.display = isMiningVisible ? 'block' : 'none';
+
   return miningDisplay;
 }
 
