@@ -40,12 +40,17 @@ type MiningInfo = {
   resources: MiningResource;
 }
 
+export type Upgrade = {
+  enabled: boolean;
+  upgradeCostsCredits: number;
+  upgradeCostBlueSquares: number;
+  upgradeCostGreenTriangles: number;
+  upgradeCostRedDiamonds: number;
+}
+
 type SpacePort = {
-  isAutoSpeedUpgradeUnlocked?: boolean;
-  speedUpgradeCostCredits: number;
-  speedUpgradeCostMiningResource: number;
-  isAutoCapacityUpgradeUnlocked?: boolean;
-  isAutoShipBuildingUpgradeUnlocked?: boolean;
+  speedUpgrade?: Upgrade,
+  capacityUpgrade?: Upgrade,
 }
 
 export type State = {

@@ -1,4 +1,4 @@
-import { type State, type Planet } from "./types.ts";
+import { type State, type Planet, type Upgrade } from "./types.ts";
 import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getSymbolHtml } from "./mining.ts";
@@ -36,8 +36,7 @@ export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): H
 }
 
 export const getOrCreateSpacePortDisplay = (state: State, planet: Planet): HTMLElement => {
-  // todo remove
-  state;
+  const spacePortParent = getOrCreateElementById({id: `${planet.name}-space-port`});
 
   const spacePort = `
 =======SPACE======
@@ -46,9 +45,21 @@ export const getOrCreateSpacePortDisplay = (state: State, planet: Planet): HTMLE
 ==================
 ==================
   `;
-  const spacePortDisplay = getOrCreateElementById({id: `${planet.name}-space-port`, innerText: spacePort});
+  const spacePortDisplay = getOrCreateElementById({id: `${planet.name}-space-port-display`, innerText: spacePort});
   spacePortDisplay.style.display = planet.spacePort ? 'block' : 'none';
-  return spacePortDisplay;
+
+  const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
+  const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
+  const enableAutoUpgradeSpeedButton = getOrCreateEnableAutoUpgradeButton(planet, "speed");
+  const enableAutoUpgradeCapacityButton = getOrCreateEnableAutoUpgradeButton(planet, "capacity");
+
+  spacePortParent.appendChild(spacePortDisplay);
+  spacePortParent.appendChild(researchAutoUpgradeSpeedButton);
+  spacePortParent.appendChild(enableAutoUpgradeSpeedButton);
+  spacePortParent.appendChild(researchAutoUpgradeCapacityButton);
+  spacePortParent.appendChild(enableAutoUpgradeCapacityButton);
+
+  return spacePortParent;
 }
 
 const canBuildSpacePort = (state: State, planet: Planet, creditCost: number, miningResourceCost: number): boolean => {
@@ -63,13 +74,10 @@ const buildSpacePort = async (state: State, creditCost: number, miningResourceCo
 
   state.credits -= creditCost;
   planet.miningInfo.resources.amount -= miningResourceCost;
-  planet.spacePort = {
-    speedUpgradeCostCredits: autoUpgradeSpeedCreditCost,
-    speedUpgradeCostMiningResource: autoUpgradeSpeedMiningCost,
-  };
+  planet.spacePort = {};
 }
 
-export const getOrCreateResearchAutoUpgradeSpeedButton = (state: State, planet: Planet): HTMLButtonElement => {
+const getOrCreateResearchAutoUpgradeSpeedButton = (state: State, planet: Planet): HTMLButtonElement => {
   const miningInfo = planet.miningInfo;
   const creditCost = miningInfo.resources.researchCost * 2;
   const miningResourceCost = researchAutoSpeedMiningCost;
@@ -83,7 +91,7 @@ export const getOrCreateResearchAutoUpgradeSpeedButton = (state: State, planet: 
   });
   researchButton.innerHTML = `Research auto upgrade speed (${creditCost} credits, ${miningResourceCost} ${getSymbolHtml(planet)})`;
 
-  const isButtonVisible = planet.spacePort && !planet.spacePort?.isAutoSpeedUpgradeUnlocked;
+  const isButtonVisible = planet.spacePort && !planet.spacePort?.speedUpgrade;
 
   researchButton.style.display = isButtonVisible ? 'block' : 'none';
 
@@ -93,7 +101,7 @@ export const getOrCreateResearchAutoUpgradeSpeedButton = (state: State, planet: 
 const canResearchAutoUpgradeSpeed = (state: State, planet: Planet, creditCost: number, miningResourceCost: number): boolean => {
   const canAfford = state.credits >= creditCost && planet.miningInfo.resources.amount >= miningResourceCost;
 
-  return !planet.spacePort?.isAutoSpeedUpgradeUnlocked && canAfford;
+  return !planet.spacePort?.speedUpgrade && canAfford;
 }
 
 const researchAutoUpgradeSpeed = async (state: State, planet: Planet, creditCost: number, miningResourceCost: number) => {
@@ -103,11 +111,17 @@ const researchAutoUpgradeSpeed = async (state: State, planet: Planet, creditCost
 
   state.credits -= creditCost;
   planet.miningInfo.resources.amount -= miningResourceCost;
-  planet.spacePort.isAutoSpeedUpgradeUnlocked = true;
+  planet.spacePort.speedUpgrade = {
+    enabled: true,
+    upgradeCostsCredits: autoUpgradeSpeedCreditCost,
+    upgradeCostBlueSquares: autoUpgradeSpeedMiningCost,
+    upgradeCostGreenTriangles: 0,
+    upgradeCostRedDiamonds: 0,
+  }
 }
 
 
-export const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, planet: Planet): HTMLButtonElement => {
+const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, planet: Planet): HTMLButtonElement => {
   const miningInfo = planet.miningInfo;
   const creditCost = miningInfo.resources.researchCost * 2;
 
@@ -127,7 +141,7 @@ export const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, plane
   });
   researchButton.innerHTML = `Research auto upgrade capacity (${creditCost} credits, ${miningResourceCost} ${getSymbolHtml(miningResourcePlanet)})`;
 
-  const isButtonVisible = planet.spacePort && !planet.spacePort?.isAutoCapacityUpgradeUnlocked;
+  const isButtonVisible = planet.spacePort && !planet.spacePort?.capacityUpgrade;
 
   researchButton.style.display = isButtonVisible ? 'block' : 'none';
 
@@ -137,7 +151,7 @@ export const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, plane
 const canResearchAutoUpgradeCapacity = (state: State, planet: Planet, creditCost: number, miningResourceCost: number): boolean => {
   const canAfford = state.credits >= creditCost && planet.miningInfo.resources.amount >= miningResourceCost;
 
-  return !planet.spacePort?.isAutoCapacityUpgradeUnlocked && canAfford;
+  return !planet.spacePort?.capacityUpgrade && canAfford;
 }
 
 const researchAutoUpgradeCapacity = async ({
@@ -155,5 +169,41 @@ const researchAutoUpgradeCapacity = async ({
 
   state.credits -= creditCost;
   miningResourcePlanet.miningInfo.resources.amount -= miningResourceCost;
-  currentPlanet.spacePort.isAutoCapacityUpgradeUnlocked = true;
+  currentPlanet.spacePort.capacityUpgrade = {
+    enabled: true,
+    upgradeCostsCredits: 0,
+    upgradeCostBlueSquares: 0,
+    upgradeCostGreenTriangles: 0,
+    upgradeCostRedDiamonds: 0,
+  }
+}
+
+const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed" | "capacity"): HTMLButtonElement => {
+  let upgrade: Upgrade | undefined;
+  if (planet.spacePort) {
+    if (upgradeType === "speed" && planet.spacePort.speedUpgrade) {
+      upgrade = planet.spacePort.speedUpgrade;
+    }
+    else if (upgradeType === "capacity" && planet.spacePort.speedUpgrade) {
+      upgrade = planet.spacePort.capacityUpgrade;
+    }
+  }
+
+  const enableAutoUpgradeSpeedButton = getOrCreateButton({
+    id: `${planet.name}-enableAutoUpgrade-${upgradeType}`,
+    onclick: () => {
+      if (upgrade) {
+        upgrade.enabled = !upgrade.enabled;
+      }
+    },
+  });
+
+  if (upgrade) {
+    const prefix = upgrade.enabled ? "Enable" : "Disable";
+    enableAutoUpgradeSpeedButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
+  }
+
+  enableAutoUpgradeSpeedButton.style.display = upgrade ? 'block' : 'none';
+
+  return enableAutoUpgradeSpeedButton;
 }

@@ -14,8 +14,6 @@ import { getOrCreateShipDisplay } from "./ship.ts";
 import {
   getOrCreateBuildSpacePortButton,
   getOrCreateSpacePortDisplay,
-  getOrCreateResearchAutoUpgradeSpeedButton,
-  getOrCreateResearchAutoUpgradeCapacityButton,
 } from "./spacePort.ts";
 import { SHIP_SPEED_MAX } from "./constants.ts";
 import { autoUpgrade } from "./autoUpgrade.ts";
@@ -337,14 +335,9 @@ const display = () => {
     const buildSpacePortButton = getOrCreateBuildSpacePortButton(state, planet);
     addShipButton.insertAdjacentElement('afterend', buildSpacePortButton);
 
-    // TODO instead of multiple returns, have a single function return one item
     const spacePortDisplay = getOrCreateSpacePortDisplay(state, planet);
-    const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
-    const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
 
     miningDisplay.insertAdjacentElement('beforebegin', spacePortDisplay);
-    spacePortDisplay.insertAdjacentElement('afterend', researchAutoUpgradeSpeedButton);
-    spacePortDisplay.insertAdjacentElement('afterend', researchAutoUpgradeCapacityButton);
 
     if (!document.getElementById(planetInfo.id)) {
       planetsInfo.append(planetInfo);

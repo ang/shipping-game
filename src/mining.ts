@@ -61,12 +61,12 @@ export const getOrCreateResearchMiningButton = (state: State, planet: Planet): H
   // Only show when you have launched ships on all planets
   const researchMiningButton = getOrCreateButton({
     id: `${planet.name}-researchMining`,
-    textContent: `Research mining (${planet.miningInfo.resources.researchCost} credits)`,
     onclick: () => {
       addToUpgradeQueue({fn: researchMining, params: [planet, state]});
     },
     disabled: state.credits < planet.miningInfo.resources.researchCost,
   });
+  researchMiningButton.innerHTML = `Research mining ${getSymbolHtml(planet)} (${planet.miningInfo.resources.researchCost} credits)`;
 
   const planetSet: Set<string> = new Set();
   state.ships.forEach((ship) => { planetSet.add(ship.destination2.name) });

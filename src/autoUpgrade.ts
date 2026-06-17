@@ -24,9 +24,9 @@ export const autoUpgrade = (state: State) => {
       const planet = shipToUpgrade.ship.destination2;
       const spacePort = planet.spacePort;
 
-      if (spacePort) {
-        const creditCost = spacePort.speedUpgradeCostCredits;
-        const miningCost = spacePort.speedUpgradeCostMiningResource;
+      if (spacePort?.speedUpgrade) {
+        const creditCost = spacePort.speedUpgrade.upgradeCostsCredits;
+        const miningCost = spacePort.speedUpgrade.upgradeCostBlueSquares;
 
         addToUpgradeQueue({
           fn: upgradeShipSpeed, params: [
@@ -51,9 +51,9 @@ const getShipToUpgrade = (state: State): ShipToUpgrade | undefined => {
   for (const ship of state.ships) {
     const spacePort = ship.destination2.spacePort;
 
-    if (spacePort?.isAutoSpeedUpgradeUnlocked) {
-      const creditCost = spacePort.speedUpgradeCostCredits;
-      const blueSquaresCost = spacePort.speedUpgradeCostMiningResource;
+    if (spacePort?.speedUpgrade?.enabled) {
+      const creditCost = spacePort.speedUpgrade.upgradeCostsCredits;
+      const blueSquaresCost = spacePort.speedUpgrade.upgradeCostBlueSquares;
 
       if (
         canAffordUpgradeShipSpeed(state, creditCost, blueSquaresCost) &&
@@ -98,17 +98,18 @@ const upgradeShipSpeed = async (
   { state: State, ship: Ship, planet: Planet, creditCost: number, miningCost: number }
 ) => {
   if (
-    planet.spacePort &&
+    planet.spacePort?.speedUpgrade &&
     canAffordUpgradeShipSpeed(state, creditCost, miningCost) &&
     ship.speed < SHIP_SPEED_MAX
   ) {
     ship.speed += 1;
 
-    state.credits -= planet.spacePort.speedUpgradeCostCredits;
-    state.blueSquares.amount -= planet.spacePort.speedUpgradeCostMiningResource;
+    const speedUpgrade = planet.spacePort.speedUpgrade;
+    state.credits -= speedUpgrade.upgradeCostsCredits;
+    state.blueSquares.amount -= speedUpgrade.upgradeCostsCredits;
 
-    // Incrase the cost
-    planet.spacePort.speedUpgradeCostCredits += 1;
-    planet.spacePort.speedUpgradeCostMiningResource += 1;
+    // Increase the cost
+    speedUpgrade.upgradeCostsCredits += 1;
+    speedUpgrade.upgradeCostBlueSquares += 1;
   }
 };
