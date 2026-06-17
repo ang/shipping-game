@@ -41,6 +41,7 @@ type MiningInfo = {
 }
 
 export type Upgrade = {
+  type: "speed" | "capacity" | "launchShip";
   enabled: boolean;
   upgradeCostsCredits: number;
   upgradeCostBlueSquares: number;
@@ -48,7 +49,7 @@ export type Upgrade = {
   upgradeCostRedDiamonds: number;
 }
 
-type SpacePort = {
+export type SpacePort = {
   speedUpgrade?: Upgrade,
   capacityUpgrade?: Upgrade,
 }

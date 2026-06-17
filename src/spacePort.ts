@@ -2,7 +2,7 @@ import { type State, type Planet, type Upgrade } from "./types.ts";
 import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getSymbolHtml } from "./mining.ts";
-import { UPGRADE_SPEED_COST_START } from "./constants.ts";
+import { UPGRADE_CAPACITY_COST_START, UPGRADE_SPEED_COST_START } from "./constants.ts";
 
 // TODO change back to a real value
 const buildSpacePortMiningCost = 1;
@@ -13,7 +13,9 @@ const researchAutoSpeedMiningCost = 5;
 const researchAutoCapacityMiningCost = buildSpacePortMiningCost * 2;
 
 const autoUpgradeSpeedCreditCost = UPGRADE_SPEED_COST_START - 2;
-const autoUpgradeSpeedMiningCost = autoUpgradeSpeedCreditCost;
+const autoUpgradeSpeedBlueSquaresCost = autoUpgradeSpeedCreditCost;
+const autoUpgradeCapacityCreditCost = UPGRADE_CAPACITY_COST_START - 2;
+const autoUpgradeCapacityGreenTrianglesCost = autoUpgradeCapacityCreditCost;
 
 export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): HTMLButtonElement => {
   const miningInfo = planet.miningInfo;
@@ -112,9 +114,10 @@ const researchAutoUpgradeSpeed = async (state: State, planet: Planet, creditCost
   state.credits -= creditCost;
   planet.miningInfo.resources.amount -= miningResourceCost;
   planet.spacePort.speedUpgrade = {
+    type: "speed",
     enabled: true,
     upgradeCostsCredits: autoUpgradeSpeedCreditCost,
-    upgradeCostBlueSquares: autoUpgradeSpeedMiningCost,
+    upgradeCostBlueSquares: autoUpgradeSpeedBlueSquaresCost,
     upgradeCostGreenTriangles: 0,
     upgradeCostRedDiamonds: 0,
   }
@@ -170,10 +173,11 @@ const researchAutoUpgradeCapacity = async ({
   state.credits -= creditCost;
   miningResourcePlanet.miningInfo.resources.amount -= miningResourceCost;
   currentPlanet.spacePort.capacityUpgrade = {
+    type: "capacity",
     enabled: true,
-    upgradeCostsCredits: 0,
+    upgradeCostsCredits: autoUpgradeCapacityCreditCost,
+    upgradeCostGreenTriangles: autoUpgradeCapacityGreenTrianglesCost,
     upgradeCostBlueSquares: 0,
-    upgradeCostGreenTriangles: 0,
     upgradeCostRedDiamonds: 0,
   }
 }
@@ -184,12 +188,12 @@ const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed"
     if (upgradeType === "speed" && planet.spacePort.speedUpgrade) {
       upgrade = planet.spacePort.speedUpgrade;
     }
-    else if (upgradeType === "capacity" && planet.spacePort.speedUpgrade) {
+    else if (upgradeType === "capacity" && planet.spacePort.capacityUpgrade) {
       upgrade = planet.spacePort.capacityUpgrade;
     }
   }
 
-  const enableAutoUpgradeSpeedButton = getOrCreateButton({
+  const enableAutoUpgradeButton = getOrCreateButton({
     id: `${planet.name}-enableAutoUpgrade-${upgradeType}`,
     onclick: () => {
       if (upgrade) {
@@ -199,11 +203,11 @@ const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed"
   });
 
   if (upgrade) {
-    const prefix = upgrade.enabled ? "Enable" : "Disable";
-    enableAutoUpgradeSpeedButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
+    const prefix = upgrade.enabled ? "Disable" : "Enable";
+    enableAutoUpgradeButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
   }
 
-  enableAutoUpgradeSpeedButton.style.display = upgrade ? 'block' : 'none';
+  enableAutoUpgradeButton.style.display = upgrade ? 'block' : 'none';
 
-  return enableAutoUpgradeSpeedButton;
+  return enableAutoUpgradeButton;
 }

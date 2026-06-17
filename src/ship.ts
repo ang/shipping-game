@@ -1,6 +1,6 @@
 import { type Ship, type State } from "./types.ts";
 import { getOrCreateElementById } from "./common.ts";
-import { SHIP_SPEED_MAX } from "./constants.ts";
+import { SHIP_CAPACITY_MAX, SHIP_SPEED_MAX } from "./constants.ts";
 
 export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement => {
     const parentId = "shipParent-" + ship.name.split(" ").join("-");
@@ -28,7 +28,7 @@ export const getOrCreateShipDisplay = (ship: Ship, state: State): HTMLElement =>
       } else if (ship.capacity === 3) {
         shipInnerText += "==";
         shipMiddle.innerText = "==";
-      } else if (ship.capacity > 3) {
+      } else if (ship.capacity === SHIP_CAPACITY_MAX) {
         shipInnerText += "===";
         shipMiddle.innerText = "===";
       }

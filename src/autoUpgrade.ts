@@ -1,18 +1,10 @@
-import { SHIP_SPEED_MAX } from "./constants.ts";
-import { type State, type Ship, type Planet } from "./types.ts";
+import { SHIP_CAPACITY_MAX, SHIP_SPEED_MAX } from "./constants.ts";
+import { type State, type Ship, type Upgrade } from "./types.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 
-type UpgradeType = "speed" | "capacity";
-
-// TODO
 type ShipToUpgrade = {
   ship: Ship,
-  upgradeType: UpgradeType,
-  // todo do I want this one? or should it be calculated?
-  upgradeCost: number,
-  creditCost: number,
-  blueSquaresCost: number,
-  // xxx etc cost
+  upgrade: Upgrade,
 }
 
 export const autoUpgrade = (state: State) => {
@@ -20,28 +12,14 @@ export const autoUpgrade = (state: State) => {
 
   // perform the upgrade
   if (shipToUpgrade) {
-    if (shipToUpgrade.upgradeType === "speed") {
-      const planet = shipToUpgrade.ship.destination2;
-      const spacePort = planet.spacePort;
-
-      if (spacePort?.speedUpgrade) {
-        const creditCost = spacePort.speedUpgrade.upgradeCostsCredits;
-        const miningCost = spacePort.speedUpgrade.upgradeCostBlueSquares;
-
-        addToUpgradeQueue({
-          fn: upgradeShipSpeed, params: [
-            {
-              state,
-              ship: shipToUpgrade.ship,
-              planet,
-              creditCost,
-              miningCost,
-            }
-          ]
-        })
-        upgradeShipSpeed
-      }
-    }
+    addToUpgradeQueue({
+      fn: upgradeShip, params: [
+        {
+          state,
+          shipToUpgrade,
+        }
+      ]
+    })
   }
 }
 
@@ -52,64 +30,104 @@ const getShipToUpgrade = (state: State): ShipToUpgrade | undefined => {
     const spacePort = ship.destination2.spacePort;
 
     if (spacePort?.speedUpgrade?.enabled) {
-      const creditCost = spacePort.speedUpgrade.upgradeCostsCredits;
-      const blueSquaresCost = spacePort.speedUpgrade.upgradeCostBlueSquares;
-
-      if (
-        canAffordUpgradeShipSpeed(state, creditCost, blueSquaresCost) &&
-        ship.speed < SHIP_SPEED_MAX
-      ) {
-        const upgradeCost = creditCost + blueSquaresCost;
-
-        if (!shipToUpgrade) {
-          shipToUpgrade = {
-            ship,
-            upgradeType: "speed",
-            upgradeCost,
-            creditCost,
-            blueSquaresCost,
-          }
-          continue;
-        }
-
-        if (ship.speed < shipToUpgrade.ship.speed && (!upgradeCost || shipToUpgrade.upgradeCost <= upgradeCost)) {
-          shipToUpgrade = {
-            ship,
-            upgradeType: "speed",
-            upgradeCost,
-            creditCost,
-            blueSquaresCost,
-          }
-          continue;
-        }
+      const nextShipToUpgrade = getShipToUpgradeInner(state, spacePort.speedUpgrade, ship, shipToUpgrade);
+      if (nextShipToUpgrade) {
+        shipToUpgrade = nextShipToUpgrade;
       }
     }
-  };
+    if (spacePort?.capacityUpgrade?.enabled) {
+      const nextShipToUpgrade = getShipToUpgradeInner(state, spacePort.capacityUpgrade, ship, shipToUpgrade);
+      if (nextShipToUpgrade) {
+        shipToUpgrade = nextShipToUpgrade;
+      }
+    }
+  }
 
   return shipToUpgrade;
 }
 
-const canAffordUpgradeShipSpeed = (state: State, creditCost: number, miningCost: number): boolean => {
-  return state.credits >= creditCost && state.blueSquares.amount >= miningCost;
+const getShipToUpgradeInner = (
+  state: State,
+  upgrade: Upgrade,
+  ship: Ship,
+  currShipToUpgrade: ShipToUpgrade | undefined,
+): ShipToUpgrade | undefined => {
+  let isUnderMax;
+  if (upgrade.type === "speed") {
+    isUnderMax = ship.speed < SHIP_SPEED_MAX;
+  } else if (upgrade.type === "capacity") {
+    isUnderMax = ship.capacity < SHIP_CAPACITY_MAX;
+  }
+
+  if (
+    canAffordUpgrade(state, upgrade) &&
+    isUnderMax
+  ) {
+    if (!currShipToUpgrade) {
+      return {
+        ship,
+        upgrade,
+      }
+    }
+
+
+    let isShipUnderCurrShipValue;
+    if (upgrade.type === "speed") {
+      isShipUnderCurrShipValue = ship.speed < currShipToUpgrade.ship.speed;
+    } else if (upgrade.type === "capacity") {
+      isShipUnderCurrShipValue = ship.capacity < currShipToUpgrade.ship.capacity;
+    }
+
+    const upgradeCost = getUpgradeCost(upgrade);
+    const currUpgradeCost = getUpgradeCost(currShipToUpgrade.upgrade);
+    const isUpgradeCostUnderCurrCost = upgradeCost <= currUpgradeCost;
+    if (isShipUnderCurrShipValue && isUpgradeCostUnderCurrCost) {
+      return {
+        ship,
+        upgrade,
+      }
+    }
+  }
+  return;
+}
+
+const getUpgradeCost = (upgrade: Upgrade): number => {
+  return upgrade.upgradeCostsCredits + upgrade.upgradeCostBlueSquares + upgrade.upgradeCostGreenTriangles + upgrade.upgradeCostRedDiamonds;
+}
+
+const canAffordUpgrade = (state: State, upgrade: Upgrade): boolean => {
+  return (
+    state.credits >= upgrade.upgradeCostsCredits &&
+    state.blueSquares.amount >= upgrade.upgradeCostBlueSquares &&
+    state.greenTriangles.amount >= upgrade.upgradeCostGreenTriangles &&
+    state.redDiamonds.amount >= upgrade.upgradeCostRedDiamonds
+  );
 };
 
-const upgradeShipSpeed = async (
-  { state, ship, planet, creditCost, miningCost } :
-  { state: State, ship: Ship, planet: Planet, creditCost: number, miningCost: number }
+const upgradeShip = async (
+  { state, shipToUpgrade } :
+  { state: State, shipToUpgrade: ShipToUpgrade}
 ) => {
+  const { ship, upgrade } = shipToUpgrade;
   if (
-    planet.spacePort?.speedUpgrade &&
-    canAffordUpgradeShipSpeed(state, creditCost, miningCost) &&
-    ship.speed < SHIP_SPEED_MAX
+    canAffordUpgrade(state, upgrade)
   ) {
-    ship.speed += 1;
+    if (upgrade.type === "speed" && ship.speed < SHIP_SPEED_MAX) {
+      ship.speed += 1;
+    }
+    else if (upgrade.type === "capacity" && ship.speed < SHIP_CAPACITY_MAX) {
+      ship.capacity += 1;
+    }
 
-    const speedUpgrade = planet.spacePort.speedUpgrade;
-    state.credits -= speedUpgrade.upgradeCostsCredits;
-    state.blueSquares.amount -= speedUpgrade.upgradeCostsCredits;
+    state.credits -= upgrade.upgradeCostsCredits;
+    state.blueSquares.amount -= upgrade.upgradeCostBlueSquares;
+    state.greenTriangles.amount -= upgrade.upgradeCostGreenTriangles;
+    state.redDiamonds.amount -= upgrade.upgradeCostRedDiamonds;
 
     // Increase the cost
-    speedUpgrade.upgradeCostsCredits += 1;
-    speedUpgrade.upgradeCostBlueSquares += 1;
+    // TODO change back
+    // Or if I decide to change how this works, don't include this
+    // speedUpgrade.upgradeCostsCredits += 1;
+    // speedUpgrade.upgradeCostBlueSquares += 1;
   }
 };
