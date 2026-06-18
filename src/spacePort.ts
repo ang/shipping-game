@@ -51,32 +51,41 @@ export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): H
 export const getOrCreateSpacePortDisplay = (state: State, planet: Planet): HTMLElement => {
   const spacePortParent = getOrCreateElementById({id: `${planet.name}-space-port`});
 
-  const spacePort = `
-=======SPACE======
-=======PORT=======
-==================
-==================
-==================
-  `;
-  const spacePortDisplay = getOrCreateElementById({id: `${planet.name}-space-port-display`, innerText: spacePort});
-  spacePortDisplay.style.display = planet.spacePort ? 'block' : 'none';
+  const spacePortVisual = getOrCreateSpacePortVisual(planet);
+  spacePortVisual.style.display = planet.spacePort ? 'block' : 'none';
 
   const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
   const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
   const researchAutoLaunchShipButton = getOrCreateResearchAutoLaunchShipButton(state, planet);
-  const enableAutoUpgradeSpeedButton = getOrCreateEnableAutoUpgradeButton(planet, "speed");
-  const enableAutoUpgradeCapacityButton = getOrCreateEnableAutoUpgradeButton(planet, "capacity");
-  const enableAutoLaunchShipButton = getOrCreateEnableAutoUpgradeButton(planet, "launchShip");
 
-  spacePortParent.appendChild(spacePortDisplay);
+  const speedUpgradeSection = getOrCreateUpgradeSection(planet, "speed");
+  const capacityUpgradeSection = getOrCreateUpgradeSection(planet, "capacity");
+  const launchShipUpgradeSection = getOrCreateUpgradeSection(planet, "launchShip");
+
+  spacePortParent.appendChild(spacePortVisual);
   spacePortParent.appendChild(researchAutoUpgradeSpeedButton);
-  spacePortParent.appendChild(enableAutoUpgradeSpeedButton);
+  spacePortParent.appendChild(speedUpgradeSection);
   spacePortParent.appendChild(researchAutoUpgradeCapacityButton);
-  spacePortParent.appendChild(enableAutoUpgradeCapacityButton);
+  spacePortParent.appendChild(capacityUpgradeSection);
   spacePortParent.appendChild(researchAutoLaunchShipButton);
-  spacePortParent.appendChild(enableAutoLaunchShipButton);
+  spacePortParent.appendChild(launchShipUpgradeSection);
 
   return spacePortParent;
+}
+
+const getOrCreateSpacePortVisual = (planet: Planet): HTMLElement => {
+  let spacePort = `
+=======SPACE PORT=======
+========================
+========================
+========================
+========================
+========================
+  `;
+  const spacePortVisual = getOrCreateElementById({id: `${planet.name}-space-port-display`, innerText: spacePort});
+  spacePortVisual.style.display = planet.spacePort ? 'block' : 'none';
+  spacePortVisual.style.whiteSpace = "pre";
+  return spacePortVisual;
 }
 
 const canBuildSpacePort = (state: State, planet: Planet, creditCost: number, miningResourceCost: number): boolean => {
@@ -197,19 +206,38 @@ const researchAutoUpgradeCapacity = async ({
   }
 }
 
-const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: UpgradeType): HTMLButtonElement => {
-  let upgrade: Upgrade | undefined;
-  if (planet.spacePort) {
-    if (upgradeType === "speed" && planet.spacePort.speedUpgrade) {
-      upgrade = planet.spacePort.speedUpgrade;
-    }
-    else if (upgradeType === "capacity" && planet.spacePort.capacityUpgrade) {
-      upgrade = planet.spacePort.capacityUpgrade;
-    }
-    else if (upgradeType === "launchShip" && planet.spacePort.launchShipUpgrade) {
-      upgrade = planet.spacePort.launchShipUpgrade;
-    }
+const getOrCreateUpgradeSection = (planet: Planet, upgradeType: UpgradeType): HTMLElement => {
+  const idPrefix = `${planet.name}-${upgradeType}`;
+
+  const upgradeSection = getOrCreateElementById({id: `${idPrefix}-upgradeSection`});
+  const heading = getOrCreateElementById({id: `${idPrefix}-heading`});
+  heading.innerText = `Auto upgrade ${upgradeType}`;
+  if (upgradeType === "launchShip") {
+    heading.innerText = `Auto launch ship`;
   }
+
+  const cost = getOrCreateElementById({id: `${idPrefix}-cost`, innerText: "Cost: 100 credits, 2x, 3y, 4z"});
+  let enableUpgradeButton;
+  if (upgradeType === "speed") {
+    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "speed");
+  } else if (upgradeType === "capacity") {
+    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "capacity");
+  } else if (upgradeType === "launchShip") {
+    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "launchShip");
+  }
+
+  upgradeSection.append(heading, cost);
+  if (enableUpgradeButton) {
+    upgradeSection.append(enableUpgradeButton);
+  }
+
+  const upgrade = getUpgrade(upgradeType, planet);
+  upgradeSection.style.display = upgrade ? 'block' : 'none';
+  return upgradeSection;
+}
+
+const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: UpgradeType): HTMLButtonElement => {
+  const upgrade = getUpgrade(upgradeType, planet);
 
   const enableAutoUpgradeButton = getOrCreateButton({
     id: `${planet.name}-enableAutoUpgrade-${upgradeType}`,
@@ -282,4 +310,22 @@ const researchAutoLaunchShip = async (state: State, planet: Planet) => {
     upgradeCostGreenTriangles: autoUpgradeLaunchShipGreenTriangles,
     upgradeCostRedDiamonds: autoUpgradeLaunchShipRedDiamonds,
   }
+}
+
+const getUpgrade = (upgradeType: UpgradeType, planet: Planet): Upgrade | undefined => {
+  let upgrade: Upgrade | undefined;
+
+  if (planet.spacePort) {
+    if (upgradeType === "speed" && planet.spacePort.speedUpgrade) {
+      upgrade = planet.spacePort.speedUpgrade;
+    }
+    else if (upgradeType === "capacity" && planet.spacePort.capacityUpgrade) {
+      upgrade = planet.spacePort.capacityUpgrade;
+    }
+    else if (upgradeType === "launchShip" && planet.spacePort.launchShipUpgrade) {
+      upgrade = planet.spacePort.launchShipUpgrade;
+    }
+  }
+
+  return upgrade;
 }
