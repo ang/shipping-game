@@ -115,7 +115,7 @@ const upgradeShip = async (
     if (upgrade.type === "speed" && ship.speed < SHIP_SPEED_MAX) {
       ship.speed += 1;
     }
-    else if (upgrade.type === "capacity" && ship.speed < SHIP_CAPACITY_MAX) {
+    else if (upgrade.type === "capacity" && ship.capacity < SHIP_CAPACITY_MAX) {
       ship.capacity += 1;
     }
 

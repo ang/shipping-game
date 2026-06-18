@@ -140,7 +140,7 @@ const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, planet: Plan
     onclick: () => {
       addToUpgradeQueue({fn: researchAutoUpgradeCapacity, params: [{state, creditCost, miningResourceCost, currentPlanet: planet, miningResourcePlanet}]});
     },
-    disabled: !canResearchAutoUpgradeCapacity(state, miningResourcePlanet, creditCost, miningResourceCost)
+    disabled: !canResearchAutoUpgradeCapacity(state, planet, miningResourcePlanet, creditCost, miningResourceCost)
   });
   researchButton.innerHTML = `Research auto upgrade capacity (${creditCost} credits, ${miningResourceCost} ${getSymbolHtml(miningResourcePlanet)})`;
 
@@ -151,8 +151,8 @@ const getOrCreateResearchAutoUpgradeCapacityButton = (state: State, planet: Plan
   return researchButton;
 }
 
-const canResearchAutoUpgradeCapacity = (state: State, planet: Planet, creditCost: number, miningResourceCost: number): boolean => {
-  const canAfford = state.credits >= creditCost && planet.miningInfo.resources.amount >= miningResourceCost;
+const canResearchAutoUpgradeCapacity = (state: State, planet: Planet, miningResourcePlanet: Planet, creditCost: number, miningResourceCost: number): boolean => {
+  const canAfford = state.credits >= creditCost && miningResourcePlanet.miningInfo.resources.amount >= miningResourceCost;
 
   return !planet.spacePort?.capacityUpgrade && canAfford;
 }
@@ -166,7 +166,7 @@ const researchAutoUpgradeCapacity = async ({
   creditCost: number,
   miningResourceCost: number
 }) => {
-  if (!canResearchAutoUpgradeCapacity(state, miningResourcePlanet, creditCost, miningResourceCost) || !currentPlanet.spacePort) {
+  if (!canResearchAutoUpgradeCapacity(state, currentPlanet, miningResourcePlanet, creditCost, miningResourceCost) || !currentPlanet.spacePort) {
     return;
   }
 

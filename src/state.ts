@@ -78,6 +78,9 @@ export const loadState = (): State => {
     const planet2 = planetByName[ship.destination2.name]
     ship.destination2 = planet2;
   });
+  loadedState.planets[0].miningInfo.resources = loadedState.blueSquares;
+  loadedState.planets[1].miningInfo.resources = loadedState.greenTriangles;
+  loadedState.planets[2].miningInfo.resources = loadedState.redDiamonds;
 
   return loadedState;
 }
