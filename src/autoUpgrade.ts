@@ -1,4 +1,5 @@
 import { SHIP_CAPACITY_MAX, SHIP_SPEED_MAX } from "./constants.ts";
+import { addShipToPlanet } from "./launchShip.ts";
 import { type State, type Ship, type Upgrade } from "./types.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 
@@ -41,6 +42,13 @@ const getShipToUpgrade = (state: State): ShipToUpgrade | undefined => {
         shipToUpgrade = nextShipToUpgrade;
       }
     }
+    if (spacePort?.launchShipUpgrade?.enabled) {
+      // Hacky: Technically a ship itself isn't being upgraded, we're launching a new ship. But good enough for our purposes.
+      const nextShipToUpgrade = getShipToUpgradeInner(state, spacePort.launchShipUpgrade, ship, shipToUpgrade);
+      if (nextShipToUpgrade) {
+        shipToUpgrade = nextShipToUpgrade;
+      }
+    }
   }
 
   return shipToUpgrade;
@@ -57,6 +65,8 @@ const getShipToUpgradeInner = (
     isUnderMax = ship.speed < SHIP_SPEED_MAX;
   } else if (upgrade.type === "capacity") {
     isUnderMax = ship.capacity < SHIP_CAPACITY_MAX;
+  } else if (upgrade.type === "launchShip") {
+    isUnderMax = true;
   }
 
   if (
@@ -70,12 +80,13 @@ const getShipToUpgradeInner = (
       }
     }
 
-
     let isShipUnderCurrShipValue;
     if (upgrade.type === "speed") {
       isShipUnderCurrShipValue = ship.speed < currShipToUpgrade.ship.speed;
     } else if (upgrade.type === "capacity") {
       isShipUnderCurrShipValue = ship.capacity < currShipToUpgrade.ship.capacity;
+    } else if (upgrade.type === "launchShip") {
+      isShipUnderCurrShipValue = true;
     }
 
     const upgradeCost = getUpgradeCost(upgrade);
@@ -114,9 +125,10 @@ const upgradeShip = async (
   ) {
     if (upgrade.type === "speed" && ship.speed < SHIP_SPEED_MAX) {
       ship.speed += 1;
-    }
-    else if (upgrade.type === "capacity" && ship.capacity < SHIP_CAPACITY_MAX) {
+    } else if (upgrade.type === "capacity" && ship.capacity < SHIP_CAPACITY_MAX) {
       ship.capacity += 1;
+    } else if (upgrade.type === "launchShip") {
+      addShipToPlanet(state, ship.destination2);
     }
 
     state.credits -= upgrade.upgradeCostsCredits;

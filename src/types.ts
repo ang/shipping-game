@@ -40,8 +40,9 @@ type MiningInfo = {
   resources: MiningResource;
 }
 
+export type UpgradeType = "speed" | "capacity" | "launchShip";
 export type Upgrade = {
-  type: "speed" | "capacity" | "launchShip";
+  type: UpgradeType;
   enabled: boolean;
   upgradeCostsCredits: number;
   upgradeCostBlueSquares: number;
@@ -50,8 +51,9 @@ export type Upgrade = {
 }
 
 export type SpacePort = {
-  speedUpgrade?: Upgrade,
-  capacityUpgrade?: Upgrade,
+  speedUpgrade?: Upgrade;
+  capacityUpgrade?: Upgrade;
+  launchShipUpgrade?: Upgrade;
 }
 
 export type State = {

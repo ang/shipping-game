@@ -17,13 +17,11 @@ import {
 } from "./spacePort.ts";
 import { SHIP_SPEED_MAX } from "./constants.ts";
 import { autoUpgrade } from "./autoUpgrade.ts";
+import {addShipToPlanet} from "./launchShip.ts";
 
 const MAX_CAPACITY = 4;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const upgradeSpeedCost = 5;
-const upgradeCapacityCost = 8;
 
 const saveStateTimeMs = 1000;
 
@@ -60,28 +58,6 @@ const upgradeShipCapacity = async (ship: Ship) => {
   }
 }
 
-const addShipToPlanet = async (planet: Planet) => {
-  if (state.credits >= planet.launchCost) {
-    const ship: Ship = {
-      name: "Ship " + (state.ships.length + 1),
-      destination1: state.startPlanet,
-      destination2: planet,
-      speed: 1,
-      capacity: 1,
-      pos: 0,
-      direction: true,
-      upgradeSpeedCost,
-      upgradeCapacityCost,
-    }
-
-    state.credits -= planet.launchCost;
-
-    planet.launchCost = Math.floor(planet.launchCost * 1.5);
-
-    state.ships.push(ship);
-  }
-}
-
 // @ts-ignore declared but its value is never read
 const debugPauseUntilClick = () => {
   return new Promise((resolve) => {
@@ -112,7 +88,7 @@ const main = async () => {
       saveStateCurrTime = saveStateEndTime;
     }
 
-    // TODO: Only show button etc when in debug mode
+    // TODO: Only show button etc when in debug mode #debug
     // TODO: even more sophisticated would be start, stop, next
     // await debugPauseUntilClick();
 
@@ -301,7 +277,7 @@ const display = () => {
       id: planetId + "addShip",
       textContent: "Launch new ship (" + planet.launchCost + " credits)",
       onclick: () => {
-        addToUpgradeQueue({ fn: addShipToPlanet, params: [planet] });
+        addToUpgradeQueue({ fn: addShipToPlanet, params: [state, planet] });
       },
       disabled: state.credits < planet.launchCost,
     });

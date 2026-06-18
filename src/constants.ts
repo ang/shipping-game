@@ -1,3 +1,5 @@
+export const SHIP_BASE_UPGRADE_SPEED_COST = 5;
+export const SHIP_BASE_UPGRADE_CAPACITY_COST = 8;
 export const SHIP_SPEED_MAX = 4;
 export const SHIP_CAPACITY_MAX = 4;
 

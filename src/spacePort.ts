@@ -1,4 +1,4 @@
-import { type State, type Planet, type Upgrade } from "./types.ts";
+import { type State, type Planet, type Upgrade, type UpgradeType } from "./types.ts";
 import { getOrCreateButton, getOrCreateElementById } from "./common.ts";
 import { addToUpgradeQueue } from "./upgradeQueue.ts";
 import { getSymbolHtml } from "./mining.ts";
@@ -12,10 +12,21 @@ const buildSpacePortMiningCost = 1;
 const researchAutoSpeedMiningCost = 5;
 const researchAutoCapacityMiningCost = buildSpacePortMiningCost * 2;
 
+// TODO
+const researchAutoLaunchShipCreditCost = 10000;
+const researchAutoLaunchShipBlueSquaresCost = 1;
+const researchAutoLaunchShipGreenTriangles = 1;
+const researchAutoLaunchShipRedDiamonds = 2;
+
 const autoUpgradeSpeedCreditCost = UPGRADE_SPEED_COST_START - 2;
 const autoUpgradeSpeedBlueSquaresCost = autoUpgradeSpeedCreditCost;
 const autoUpgradeCapacityCreditCost = UPGRADE_CAPACITY_COST_START - 2;
 const autoUpgradeCapacityGreenTrianglesCost = autoUpgradeCapacityCreditCost;
+// todo adjust
+const autoUpgradeLaunchShipCreditCost = 10000;
+const autoUpgradeLaunchShipBlueSquaresCost = 1;
+const autoUpgradeLaunchShipGreenTriangles = 1;
+const autoUpgradeLaunchShipRedDiamonds = 2;
 
 export const getOrCreateBuildSpacePortButton = (state: State, planet: Planet): HTMLButtonElement => {
   const miningInfo = planet.miningInfo;
@@ -52,14 +63,18 @@ export const getOrCreateSpacePortDisplay = (state: State, planet: Planet): HTMLE
 
   const researchAutoUpgradeSpeedButton = getOrCreateResearchAutoUpgradeSpeedButton(state, planet);
   const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
+  const researchAutoLaunchShipButton = getOrCreateResearchAutoLaunchShipButton(state, planet);
   const enableAutoUpgradeSpeedButton = getOrCreateEnableAutoUpgradeButton(planet, "speed");
   const enableAutoUpgradeCapacityButton = getOrCreateEnableAutoUpgradeButton(planet, "capacity");
+  const enableAutoLaunchShipButton = getOrCreateEnableAutoUpgradeButton(planet, "launchShip");
 
   spacePortParent.appendChild(spacePortDisplay);
   spacePortParent.appendChild(researchAutoUpgradeSpeedButton);
   spacePortParent.appendChild(enableAutoUpgradeSpeedButton);
   spacePortParent.appendChild(researchAutoUpgradeCapacityButton);
   spacePortParent.appendChild(enableAutoUpgradeCapacityButton);
+  spacePortParent.appendChild(researchAutoLaunchShipButton);
+  spacePortParent.appendChild(enableAutoLaunchShipButton);
 
   return spacePortParent;
 }
@@ -182,7 +197,7 @@ const researchAutoUpgradeCapacity = async ({
   }
 }
 
-const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed" | "capacity"): HTMLButtonElement => {
+const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: UpgradeType): HTMLButtonElement => {
   let upgrade: Upgrade | undefined;
   if (planet.spacePort) {
     if (upgradeType === "speed" && planet.spacePort.speedUpgrade) {
@@ -190,6 +205,9 @@ const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed"
     }
     else if (upgradeType === "capacity" && planet.spacePort.capacityUpgrade) {
       upgrade = planet.spacePort.capacityUpgrade;
+    }
+    else if (upgradeType === "launchShip" && planet.spacePort.launchShipUpgrade) {
+      upgrade = planet.spacePort.launchShipUpgrade;
     }
   }
 
@@ -204,10 +222,64 @@ const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: "speed"
 
   if (upgrade) {
     const prefix = upgrade.enabled ? "Disable" : "Enable";
-    enableAutoUpgradeButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
+    if (upgradeType === "launchShip") {
+      enableAutoUpgradeButton.textContent = `${prefix} auto launch ship`;
+    } else {
+      enableAutoUpgradeButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
+    }
   }
 
   enableAutoUpgradeButton.style.display = upgrade ? 'block' : 'none';
 
   return enableAutoUpgradeButton;
+}
+
+const getOrCreateResearchAutoLaunchShipButton = (state: State, planet: Planet): HTMLButtonElement => {
+  const researchButton = getOrCreateButton({
+    id: `${planet.name}-researchAutoLaunchShip`,
+    onclick: () => {
+      addToUpgradeQueue({fn: researchAutoLaunchShip, params: [state, planet]});
+    },
+    disabled: !canResearchAutoLaunchShip(state, planet)
+  });
+  researchButton.innerHTML = `Research auto launch ships (${researchAutoLaunchShipCreditCost} credits, `
+  researchButton.innerHTML += `${researchAutoLaunchShipBlueSquaresCost} ${getSymbolHtml(state.planets[0])}, `;
+  researchButton.innerHTML += `${researchAutoLaunchShipGreenTriangles} ${getSymbolHtml(state.planets[1])}, `;
+  researchButton.innerHTML += `${researchAutoLaunchShipRedDiamonds} ${getSymbolHtml(state.planets[2])})`;
+
+  const isButtonVisible = planet.spacePort && !planet.spacePort?.launchShipUpgrade;
+
+  researchButton.style.display = isButtonVisible ? 'block' : 'none';
+
+  return researchButton;
+}
+
+const canResearchAutoLaunchShip = (state: State, planet: Planet): boolean => {
+  const canAfford =
+    state.credits >= researchAutoLaunchShipCreditCost &&
+    state.blueSquares.amount >= researchAutoLaunchShipBlueSquaresCost &&
+    state.greenTriangles.amount >= researchAutoLaunchShipGreenTriangles &&
+    state.redDiamonds.amount >= researchAutoLaunchShipRedDiamonds;
+
+  return !planet.spacePort?.launchShipUpgrade && canAfford;
+}
+
+const researchAutoLaunchShip = async (state: State, planet: Planet) => {
+  if (!canResearchAutoLaunchShip(state, planet) || !planet.spacePort) {
+    return;
+  }
+
+  state.credits -= researchAutoLaunchShipCreditCost;
+  state.blueSquares.amount -= researchAutoLaunchShipBlueSquaresCost;
+  state.greenTriangles.amount -= researchAutoLaunchShipGreenTriangles;
+  state.redDiamonds.amount -= researchAutoLaunchShipRedDiamonds;
+
+  planet.spacePort.launchShipUpgrade = {
+    type: "launchShip",
+    enabled: true,
+    upgradeCostsCredits: autoUpgradeLaunchShipCreditCost,
+    upgradeCostBlueSquares: autoUpgradeLaunchShipBlueSquaresCost,
+    upgradeCostGreenTriangles: autoUpgradeLaunchShipGreenTriangles,
+    upgradeCostRedDiamonds: autoUpgradeLaunchShipRedDiamonds,
+  }
 }
