@@ -58,9 +58,9 @@ export const getOrCreateSpacePortDisplay = (state: State, planet: Planet): HTMLE
   const researchAutoUpgradeCapacityButton = getOrCreateResearchAutoUpgradeCapacityButton(state, planet);
   const researchAutoLaunchShipButton = getOrCreateResearchAutoLaunchShipButton(state, planet);
 
-  const speedUpgradeSection = getOrCreateUpgradeSection(planet, "speed");
-  const capacityUpgradeSection = getOrCreateUpgradeSection(planet, "capacity");
-  const launchShipUpgradeSection = getOrCreateUpgradeSection(planet, "launchShip");
+  const speedUpgradeSection = getOrCreateUpgradeSection(state, planet, "speed");
+  const capacityUpgradeSection = getOrCreateUpgradeSection(state, planet, "capacity");
+  const launchShipUpgradeSection = getOrCreateUpgradeSection(state, planet, "launchShip");
 
   spacePortParent.appendChild(spacePortVisual);
   spacePortParent.appendChild(researchAutoUpgradeSpeedButton);
@@ -206,37 +206,48 @@ const researchAutoUpgradeCapacity = async ({
   }
 }
 
-const getOrCreateUpgradeSection = (planet: Planet, upgradeType: UpgradeType): HTMLElement => {
+const getOrCreateUpgradeSection = (state: State, planet: Planet, upgradeType: UpgradeType): HTMLElement => {
   const idPrefix = `${planet.name}-${upgradeType}`;
+  const upgrade = getUpgrade(upgradeType, planet);
 
   const upgradeSection = getOrCreateElementById({id: `${idPrefix}-upgradeSection`});
-  const heading = getOrCreateElementById({id: `${idPrefix}-heading`});
-  heading.innerText = `Auto upgrade ${upgradeType}`;
-  if (upgradeType === "launchShip") {
-    heading.innerText = `Auto launch ship`;
-  }
 
-  const cost = getOrCreateElementById({id: `${idPrefix}-cost`, innerText: "Cost: 100 credits, 2x, 3y, 4z"});
-  let enableUpgradeButton;
-  if (upgradeType === "speed") {
-    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "speed");
-  } else if (upgradeType === "capacity") {
-    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "capacity");
-  } else if (upgradeType === "launchShip") {
-    enableUpgradeButton= getOrCreateEnableAutoUpgradeButton(planet, "launchShip");
+  const heading = getOrCreateUpgradeHeading(planet, upgradeType);
+
+  const cost = getOrCreateElementById({id: `${idPrefix}-cost`});
+  if (upgrade) {
+    const costArray = [
+      upgrade.upgradeCostsCredits ? `${upgrade.upgradeCostsCredits} credits` : undefined,
+      upgrade.upgradeCostBlueSquares ? `${upgrade.upgradeCostBlueSquares} ${getSymbolHtml(state.planets[0])}` : undefined,
+      upgrade.upgradeCostGreenTriangles ? `${upgrade.upgradeCostGreenTriangles} ${getSymbolHtml(state.planets[1])}` : undefined,
+      upgrade.upgradeCostRedDiamonds ? `${upgrade.upgradeCostRedDiamonds} ${getSymbolHtml(state.planets[2])}` : undefined,
+    ].filter(Boolean);
+    cost.innerHTML = `Cost: ${costArray.join(", ")}`;
   }
 
   upgradeSection.append(heading, cost);
-  if (enableUpgradeButton) {
-    upgradeSection.append(enableUpgradeButton);
-  }
 
-  const upgrade = getUpgrade(upgradeType, planet);
   upgradeSection.style.display = upgrade ? 'block' : 'none';
 
   upgradeSection.className = "upgradeSection";
 
   return upgradeSection;
+}
+
+const getOrCreateUpgradeHeading = (planet: Planet, upgradeType: UpgradeType): HTMLElement => {
+  const idPrefix = `${planet.name}-${upgradeType}`;
+
+  const headingParent = getOrCreateElementById({id: `${idPrefix}-headingParent}`});
+  headingParent.className = "upgradeHeading";
+
+  const heading = getOrCreateElementById({id: `${idPrefix}-heading`});
+  heading.innerText = upgradeType === "launchShip" ? "Auto launch ship" : `Auto upgrade ${upgradeType}`;
+
+  const enableUpgradeButton = getOrCreateEnableAutoUpgradeButton(planet, upgradeType);
+
+  headingParent.append(heading, enableUpgradeButton);
+
+  return headingParent;
 }
 
 const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: UpgradeType): HTMLButtonElement => {
@@ -251,15 +262,7 @@ const getOrCreateEnableAutoUpgradeButton = (planet: Planet, upgradeType: Upgrade
     },
   });
 
-  if (upgrade) {
-    const prefix = upgrade.enabled ? "Disable" : "Enable";
-    if (upgradeType === "launchShip") {
-      enableAutoUpgradeButton.textContent = `${prefix} auto launch ship`;
-    } else {
-      enableAutoUpgradeButton.textContent = `${prefix} auto upgrade ${upgradeType}`;
-    }
-  }
-
+  enableAutoUpgradeButton.textContent = upgrade?.enabled ? "Disable" : "Enable";
   enableAutoUpgradeButton.style.display = upgrade ? 'block' : 'none';
 
   return enableAutoUpgradeButton;
