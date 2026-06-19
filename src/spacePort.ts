@@ -233,6 +233,9 @@ const getOrCreateUpgradeSection = (planet: Planet, upgradeType: UpgradeType): HT
 
   const upgrade = getUpgrade(upgradeType, planet);
   upgradeSection.style.display = upgrade ? 'block' : 'none';
+
+  upgradeSection.className = "upgradeSection";
+
   return upgradeSection;
 }
 

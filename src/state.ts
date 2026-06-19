@@ -52,6 +52,10 @@ export const getDefaultState = (): State => {
     blueSquares,
     greenTriangles,
     redDiamonds,
+    debug: {
+      isPaused: false,
+      nextStep: false,
+    }
   }
 
   return defaultState;
@@ -81,6 +85,11 @@ export const loadState = (): State => {
   loadedState.planets[0].miningInfo.resources = loadedState.blueSquares;
   loadedState.planets[1].miningInfo.resources = loadedState.greenTriangles;
   loadedState.planets[2].miningInfo.resources = loadedState.redDiamonds;
+
+  loadedState.debug = {
+    isPaused: false,
+    nextStep: false,
+  }
 
   return loadedState;
 }

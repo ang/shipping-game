@@ -17,7 +17,8 @@ import {
 } from "./spacePort.ts";
 import { SHIP_SPEED_MAX } from "./constants.ts";
 import { autoUpgrade } from "./autoUpgrade.ts";
-import {addShipToPlanet} from "./launchShip.ts";
+import { addShipToPlanet } from "./launchShip.ts";
+import { getOrCreateDebugTools } from "./debug.ts";
 
 const MAX_CAPACITY = 4;
 
@@ -58,28 +59,20 @@ const upgradeShipCapacity = async (ship: Ship) => {
   }
 }
 
-// @ts-ignore declared but its value is never read
-const debugPauseUntilClick = () => {
-  return new Promise((resolve) => {
-    const button = getOrCreateElementById({
-      id: 'debugNextButton',
-      innerText: "Next",
-      elementTypeArg: "button",
-    });
-    button.addEventListener('click', () => {
-      resolve(undefined);
-    });
-  });
-};
-
 const main = async () => {
   init();
 
   let saveStateCurrTime = new Date();
 
   while (true) {
-    updates();
-    display();
+    if (!state.debug.isPaused || state.debug.nextStep) {
+      updates();
+      display();
+    }
+
+    if (state.debug.nextStep) {
+      state.debug.nextStep = false;
+    }
 
     const saveStateEndTime = new Date();
     const saveStateElapsedTimeMs = saveStateEndTime.getTime() - saveStateCurrTime.getTime();
@@ -87,10 +80,6 @@ const main = async () => {
       saveState(state);
       saveStateCurrTime = saveStateEndTime;
     }
-
-    // TODO: Only show button etc when in debug mode #debug
-    // TODO: even more sophisticated would be start, stop, next
-    // await debugPauseUntilClick();
 
     await sleep(300);
   }
@@ -189,22 +178,15 @@ const display = () => {
   const planetBResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[0]);
   const planetCResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[1]);
   const planetDResourcesDiv = getOrCreateMiningResourcesDiv(state.planets[2]);
+  const debugTools = getOrCreateDebugTools(state);
 
   if (!gameInfoDiv.childElementCount) {
     gameInfoDiv.appendChild(creditsDiv);
     gameInfoDiv.appendChild(planetBResourcesDiv);
     gameInfoDiv.appendChild(planetCResourcesDiv);
     gameInfoDiv.appendChild(planetDResourcesDiv);
+    gameInfoDiv.appendChild(debugTools);
   }
-
-  // const gameTickId = "game";
-  // let gameTickDiv = document.getElementById(gameTickId);
-  // if (!gameTickDiv) {
-  //   gameTickDiv = document.createElement("div");
-  //   gameTickDiv.id = gameTickId;
-  //   gameInfoDiv?.appendChild(gameTickDiv);
-  // }
-  // gameTickDiv.innerText = "Game tick: " + state.gameTick.toString();
 
   // Ships Info
   const shipsInfoDiv = getOrCreateElementById({id: "shipsInfo"});

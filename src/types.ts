@@ -65,4 +65,8 @@ export type State = {
   blueSquares: MiningResource
   greenTriangles: MiningResource
   redDiamonds: MiningResource
+  debug: {
+    isPaused: boolean,
+    nextStep: boolean,
+  }
 }
